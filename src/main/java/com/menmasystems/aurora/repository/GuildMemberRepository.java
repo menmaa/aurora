@@ -3,11 +3,11 @@
  */
 package com.menmasystems.aurora.repository;
 
-import com.menmasystems.aurora.model.GuildMember;
+import com.menmasystems.aurora.model.GuildMemberDocument;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Mono;
 
-public interface GuildMemberRepository extends ReactiveMongoRepository<GuildMember, String> {
-    Mono<GuildMember> findByGuildIdAndUserId(String guildId, String userId);
+public interface GuildMemberRepository extends ReactiveMongoRepository<GuildMemberDocument, String> {
+    Mono<GuildMemberDocument> findByGuildIdAndUserId(String guildId, String userId);
     Mono<Boolean> existsByGuildIdAndUserId(String guildId, String userId);
 }

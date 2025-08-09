@@ -3,13 +3,13 @@
  */
 package com.menmasystems.aurora.repository;
 
-import com.menmasystems.aurora.model.User;
+import com.menmasystems.aurora.model.UserDocument;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Mono;
 
-public interface UserRepository extends ReactiveMongoRepository<User, String> {
+public interface UserRepository extends ReactiveMongoRepository<UserDocument, String> {
     Mono<Boolean> existsByUsername(String username);
     Mono<Boolean> existsByEmail(String email);
 
-    Mono<User> findByEmail(String email);
+    Mono<UserDocument> findByEmail(String email);
 }

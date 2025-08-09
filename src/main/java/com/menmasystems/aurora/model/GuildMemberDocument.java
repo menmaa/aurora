@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @Document(collection = "guild_members")
-public class GuildMember {
+public class GuildMemberDocument {
 
     private final String guildId;
     private String displayName;
@@ -16,7 +16,7 @@ public class GuildMember {
     private final String userId;
     private List<String> roles;
 
-    public GuildMember(String guildId, String userId) {
+    public GuildMemberDocument(String guildId, String userId) {
         this.guildId = guildId;
         this.userId = userId;
         this.roles = List.of();

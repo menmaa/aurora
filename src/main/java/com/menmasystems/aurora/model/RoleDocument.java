@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Role {
+public class RoleDocument {
 
     @Id
     private String id;
@@ -19,9 +19,9 @@ public class Role {
     private boolean managed;
     private boolean mentionable;
 
-    public Role() {}
+    public RoleDocument() {}
 
-    public Role(String name) {
+    public RoleDocument(String name) {
         this.name = name;
     }
 

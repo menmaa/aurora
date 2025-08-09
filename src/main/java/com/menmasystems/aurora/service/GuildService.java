@@ -4,9 +4,9 @@
 package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.dto.CreateGuildRequest;
-import com.menmasystems.aurora.model.Guild;
-import com.menmasystems.aurora.model.GuildMember;
-import com.menmasystems.aurora.model.Role;
+import com.menmasystems.aurora.model.GuildDocument;
+import com.menmasystems.aurora.model.GuildMemberDocument;
+import com.menmasystems.aurora.model.RoleDocument;
 import com.menmasystems.aurora.repository.GuildMemberRepository;
 import com.menmasystems.aurora.repository.GuildRepository;
 import org.springframework.stereotype.Service;
@@ -27,8 +27,8 @@ public class GuildService {
     }
 
     @Transactional
-    public Mono<Guild> createGuild(String userId, CreateGuildRequest request) {
-        Guild guild = new Guild();
+    public Mono<GuildDocument> createGuild(String userId, CreateGuildRequest request) {
+        GuildDocument guild = new GuildDocument();
         guild.setName(request.getName());
         guild.setIcon(request.getIcon());
         guild.setOwnerId(userId);
@@ -39,15 +39,15 @@ public class GuildService {
                         .thenReturn(savedGuild));
     }
 
-    public Mono<Guild> getGuildById(String id) {
+    public Mono<GuildDocument> getGuildById(String id) {
         return guildRepository.findById(id);
     }
 
-    public Mono<GuildMember> addGuildMember(String guildId, String userId) {
-        return guildMemberRepository.save(new GuildMember(guildId, userId));
+    public Mono<GuildMemberDocument> addGuildMember(String guildId, String userId) {
+        return guildMemberRepository.save(new GuildMemberDocument(guildId, userId));
     }
 
-    public Mono<GuildMember> getGuildMember(String guildId, String userId) {
+    public Mono<GuildMemberDocument> getGuildMember(String guildId, String userId) {
         return guildMemberRepository.findByGuildIdAndUserId(guildId, userId);
     }
 
@@ -55,7 +55,7 @@ public class GuildService {
         return guildMemberRepository.existsByGuildIdAndUserId(guildId, userId);
     }
 
-    private Role createDefaultRole() {
-        return new Role("@everyone");
+    private RoleDocument createDefaultRole() {
+        return new RoleDocument("@everyone");
     }
 }

@@ -5,7 +5,7 @@ package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.component.RedisCuckooFilter;
 import com.menmasystems.aurora.dto.RegisterUserRequest;
-import com.menmasystems.aurora.model.User;
+import com.menmasystems.aurora.model.UserDocument;
 import com.menmasystems.aurora.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class UserService {
     }
 
     public Mono<String> createUser(RegisterUserRequest request) {
-        User user = new User();
+        UserDocument user = new UserDocument();
         user.setUsername(request.getUsername());
         user.setDisplayName(request.getDisplayName());
         user.setEmail(request.getEmail());
@@ -36,21 +36,21 @@ public class UserService {
                     cuckooFilter.addUsername(user.getUsername());
                     cuckooFilter.addEmail(user.getEmail());
                 })
-                .map(User::getId);
+                .map(UserDocument::getId);
     }
 
-    public Mono<User> getUserById(String id) {
+    public Mono<UserDocument> getUserById(String id) {
         return userRepository.findById(id);
     }
 
-    public Mono<User> getUserByEmail(String email) {
+    public Mono<UserDocument> getUserByEmail(String email) {
         if(!cuckooFilter.maybeEmailExists(email))
             return Mono.empty();
 
         return userRepository.findByEmail(email);
     }
 
-    public Mono<User> getUserByLoginCredentials(String email, String password) {
+    public Mono<UserDocument> getUserByLoginCredentials(String email, String password) {
         return getUserByEmail(email)
                 .filter(user -> passwordEncoder.matches(password, user.getPassword()));
     }

@@ -3,6 +3,8 @@
  */
 package com.menmasystems.aurora.dto;
 
+import com.menmasystems.aurora.model.RoleDocument;
+
 public class Role {
 
     private final String id;
@@ -14,7 +16,7 @@ public class Role {
     private final boolean managed;
     private final boolean mentionable;
 
-    public Role(com.menmasystems.aurora.model.Role role) {
+    public Role(RoleDocument role) {
         this.id = role.getId();
         this.name = role.getName();
         this.permissions = role.getPermissions();

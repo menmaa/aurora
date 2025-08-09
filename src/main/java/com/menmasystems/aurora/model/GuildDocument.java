@@ -9,14 +9,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @Document(collection = "guilds")
-public class Guild {
+public class GuildDocument {
 
     @Id
     private String id;
     private String name;
     private String icon;
     private String ownerId;
-    private List<Role> roles;
+    private List<RoleDocument> roles;
 
     public String getId() {
         return id;
@@ -50,11 +50,11 @@ public class Guild {
         this.ownerId = ownerId;
     }
 
-    public List<Role> getRoles() {
+    public List<RoleDocument> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<Role> roles) {
+    public void setRoles(List<RoleDocument> roles) {
         this.roles = roles;
     }
 }

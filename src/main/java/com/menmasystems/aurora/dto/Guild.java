@@ -3,6 +3,8 @@
  */
 package com.menmasystems.aurora.dto;
 
+import com.menmasystems.aurora.model.GuildDocument;
+
 import java.util.List;
 
 public class Guild {
@@ -13,7 +15,7 @@ public class Guild {
     private final String ownerId;
     private final List<Role> roles;
 
-    public Guild(com.menmasystems.aurora.model.Guild guild) {
+    public Guild(GuildDocument guild) {
         this.id = guild.getId();
         this.name = guild.getName();
         this.icon = guild.getIcon();

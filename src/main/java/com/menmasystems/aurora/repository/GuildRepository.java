@@ -3,8 +3,8 @@
  */
 package com.menmasystems.aurora.repository;
 
-import com.menmasystems.aurora.model.Guild;
+import com.menmasystems.aurora.model.GuildDocument;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface GuildRepository extends ReactiveMongoRepository<Guild, String> {
+public interface GuildRepository extends ReactiveMongoRepository<GuildDocument, String> {
 }

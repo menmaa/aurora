@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
-public class User {
+public class UserDocument {
     @Id
     private String id;
     private String username;
@@ -25,9 +25,9 @@ public class User {
     private long premium_type;
     private long public_flags;
 
-    public User() {}
+    public UserDocument() {}
 
-    public User(String username, String display_name, String email, String password) {
+    public UserDocument(String username, String display_name, String email, String password) {
         // TODO Generate Snowflake ID
         this.username = username;
         this.display_name = display_name;
