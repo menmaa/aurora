@@ -3,13 +3,14 @@
  */
 package com.menmasystems.aurora.model;
 
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
 public class UserDocument {
     @Id
-    private String id;
+    private long id;
     private String username;
     private String display_name;
     private String email;
@@ -27,20 +28,12 @@ public class UserDocument {
 
     public UserDocument() {}
 
-    public UserDocument(String username, String display_name, String email, String password) {
-        // TODO Generate Snowflake ID
-        this.username = username;
-        this.display_name = display_name;
-        this.email = email;
-        this.password = password;
+    public SnowflakeId getId() {
+        return SnowflakeId.of(id);
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public void setId(SnowflakeId id) {
+        this.id = id.id();
     }
 
     public String getUsername() {

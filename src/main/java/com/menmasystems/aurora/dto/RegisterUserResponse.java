@@ -3,14 +3,16 @@
  */
 package com.menmasystems.aurora.dto;
 
-public class RegisterUserResponse {
-    private final String id;
+import com.menmasystems.aurora.util.SnowflakeId;
 
-    public RegisterUserResponse(String id) {
+public class RegisterUserResponse {
+    private final SnowflakeId id;
+
+    public RegisterUserResponse(SnowflakeId id) {
         this.id = id;
     }
 
-    public String getId() {
+    public SnowflakeId getId() {
         return id;
     }
 }

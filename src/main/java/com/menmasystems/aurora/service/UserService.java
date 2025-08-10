@@ -4,27 +4,32 @@
 package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.component.RedisCuckooFilter;
+import com.menmasystems.aurora.component.SnowflakeGenerator;
 import com.menmasystems.aurora.dto.RegisterUserRequest;
 import com.menmasystems.aurora.model.UserDocument;
 import com.menmasystems.aurora.repository.UserRepository;
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
 public class UserService {
+    private final SnowflakeGenerator snowflakeGenerator;
     private final UserRepository userRepository;
 
     private final RedisCuckooFilter cuckooFilter;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserService(UserRepository userRepository, RedisCuckooFilter cuckooFilter) {
+    public UserService(SnowflakeGenerator snowflakeGenerator, UserRepository userRepository, RedisCuckooFilter cuckooFilter) {
+        this.snowflakeGenerator = snowflakeGenerator;
         this.userRepository = userRepository;
         this.cuckooFilter = cuckooFilter;
     }
 
-    public Mono<String> createUser(RegisterUserRequest request) {
+    public Mono<SnowflakeId> createUser(RegisterUserRequest request) {
         UserDocument user = new UserDocument();
+        user.setId(snowflakeGenerator.generate());
         user.setUsername(request.getUsername());
         user.setDisplayName(request.getDisplayName());
         user.setEmail(request.getEmail());
@@ -39,8 +44,8 @@ public class UserService {
                 .map(UserDocument::getId);
     }
 
-    public Mono<UserDocument> getUserById(String id) {
-        return userRepository.findById(id);
+    public Mono<UserDocument> getUserById(SnowflakeId id) {
+        return userRepository.findById(id.id());
     }
 
     public Mono<UserDocument> getUserByEmail(String email) {

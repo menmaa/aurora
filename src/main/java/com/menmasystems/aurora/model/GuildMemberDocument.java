@@ -3,6 +3,7 @@
  */
 package com.menmasystems.aurora.model;
 
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -10,19 +11,19 @@ import java.util.List;
 @Document(collection = "guild_members")
 public class GuildMemberDocument {
 
-    private final String guildId;
+    private final SnowflakeId guildId;
+    private final SnowflakeId userId;
     private String displayName;
     private String avatar;
-    private final String userId;
-    private List<String> roles;
+    private List<SnowflakeId> roles;
 
-    public GuildMemberDocument(String guildId, String userId) {
+    public GuildMemberDocument(SnowflakeId guildId, SnowflakeId userId) {
         this.guildId = guildId;
         this.userId = userId;
         this.roles = List.of();
     }
 
-    public String getGuildId() {
+    public SnowflakeId getGuildId() {
         return guildId;
     }
 
@@ -42,15 +43,15 @@ public class GuildMemberDocument {
         this.avatar = avatar;
     }
 
-    public String getUserId() {
+    public SnowflakeId getUserId() {
         return userId;
     }
 
-    public List<String> getRoles() {
+    public List<SnowflakeId> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<SnowflakeId> roles) {
         this.roles = roles;
     }
 }

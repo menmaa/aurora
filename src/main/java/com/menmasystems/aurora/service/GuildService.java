@@ -3,12 +3,12 @@
  */
 package com.menmasystems.aurora.service;
 
+import com.menmasystems.aurora.component.SnowflakeGenerator;
 import com.menmasystems.aurora.dto.CreateGuildRequest;
 import com.menmasystems.aurora.model.GuildDocument;
-import com.menmasystems.aurora.model.GuildMemberDocument;
 import com.menmasystems.aurora.model.RoleDocument;
-import com.menmasystems.aurora.repository.GuildMemberRepository;
 import com.menmasystems.aurora.repository.GuildRepository;
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -19,43 +19,34 @@ import java.util.List;
 public class GuildService {
 
     private final GuildRepository guildRepository;
-    private final GuildMemberRepository guildMemberRepository;
+    private final GuildMemberService guildMemberService;
+    private final SnowflakeGenerator snowflakeGenerator;
 
-    public GuildService(GuildRepository guildRepository, GuildMemberRepository guildMemberRepository) {
+    public GuildService(GuildRepository guildRepository, GuildMemberService guildMemberService, SnowflakeGenerator snowflakeGenerator) {
         this.guildRepository = guildRepository;
-        this.guildMemberRepository = guildMemberRepository;
+        this.guildMemberService = guildMemberService;
+        this.snowflakeGenerator = snowflakeGenerator;
     }
 
     @Transactional
-    public Mono<GuildDocument> createGuild(String userId, CreateGuildRequest request) {
+    public Mono<GuildDocument> createGuild(SnowflakeId userId, CreateGuildRequest request) {
         GuildDocument guild = new GuildDocument();
+        guild.setId(snowflakeGenerator.generate());
         guild.setName(request.getName());
         guild.setIcon(request.getIcon());
         guild.setOwnerId(userId);
-        guild.setRoles(List.of(createDefaultRole()));
+        guild.setRoles(List.of(createDefaultRole(guild.getId())));
 
         return guildRepository.save(guild)
-                .flatMap(savedGuild -> addGuildMember(savedGuild.getId(), savedGuild.getOwnerId())
-                        .thenReturn(savedGuild));
+                .flatMap(doc -> guildMemberService.addMemberNoCache(doc.getId(), doc.getOwnerId())
+                        .thenReturn(doc));
     }
 
-    public Mono<GuildDocument> getGuildById(String id) {
-        return guildRepository.findById(id);
+    public Mono<GuildDocument> getGuildById(SnowflakeId id) {
+        return guildRepository.findById(id.id());
     }
 
-    public Mono<GuildMemberDocument> addGuildMember(String guildId, String userId) {
-        return guildMemberRepository.save(new GuildMemberDocument(guildId, userId));
-    }
-
-    public Mono<GuildMemberDocument> getGuildMember(String guildId, String userId) {
-        return guildMemberRepository.findByGuildIdAndUserId(guildId, userId);
-    }
-
-    public Mono<Boolean> isGuildMember(String guildId, String userId) {
-        return guildMemberRepository.existsByGuildIdAndUserId(guildId, userId);
-    }
-
-    private RoleDocument createDefaultRole() {
-        return new RoleDocument("@everyone");
+    private RoleDocument createDefaultRole(SnowflakeId guildId) {
+        return new RoleDocument(guildId, "@everyone");
     }
 }

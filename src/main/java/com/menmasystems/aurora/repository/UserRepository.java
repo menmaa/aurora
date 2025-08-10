@@ -7,7 +7,7 @@ import com.menmasystems.aurora.model.UserDocument;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import reactor.core.publisher.Mono;
 
-public interface UserRepository extends ReactiveMongoRepository<UserDocument, String> {
+public interface UserRepository extends ReactiveMongoRepository<UserDocument, Long> {
     Mono<Boolean> existsByUsername(String username);
     Mono<Boolean> existsByEmail(String email);
 

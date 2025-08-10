@@ -4,6 +4,7 @@
 package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.auth.AuroraAuthenticationToken;
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -18,7 +19,7 @@ public class SessionService {
         this.redisTemplate = redisTemplate;
     }
 
-    public Mono<String> createSession(String userId) {
+    public Mono<String> createSession(SnowflakeId userId) {
         int timestamp = Math.toIntExact(System.currentTimeMillis() / 1000);
         String key = REDIS_SESSION_KEY + userId;
         redisTemplate.opsForSet().add(key, String.valueOf(timestamp));
@@ -38,7 +39,9 @@ public class SessionService {
     }
 
     public Mono<Void> invalidateSession(AuroraAuthenticationToken authToken) {
-        invalidateSession(authToken.getPrincipal(), String.valueOf(authToken.getCredentials()));
+        String principalId = String.valueOf(authToken.getPrincipal());
+        String timestamp = String.valueOf(authToken.getCredentials());
+        invalidateSession(principalId, timestamp);
         return Mono.empty();
     }
 }

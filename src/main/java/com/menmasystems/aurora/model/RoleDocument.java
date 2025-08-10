@@ -3,14 +3,13 @@
  */
 package com.menmasystems.aurora.model;
 
-import org.springframework.data.annotation.Id;
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
 public class RoleDocument {
 
-    @Id
-    private String id;
+    private SnowflakeId id;
     private String name;
     private long permissions;
     private int color;
@@ -21,15 +20,16 @@ public class RoleDocument {
 
     public RoleDocument() {}
 
-    public RoleDocument(String name) {
+    public RoleDocument(SnowflakeId id, String name) {
+        this.id = id;
         this.name = name;
     }
 
-    public String getId() {
+    public SnowflakeId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(SnowflakeId id) {
         this.id = id;
     }
 

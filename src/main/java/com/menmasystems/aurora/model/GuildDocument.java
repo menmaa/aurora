@@ -3,6 +3,7 @@
  */
 package com.menmasystems.aurora.model;
 
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,18 +13,18 @@ import java.util.List;
 public class GuildDocument {
 
     @Id
-    private String id;
+    private long id;
     private String name;
     private String icon;
-    private String ownerId;
+    private SnowflakeId ownerId;
     private List<RoleDocument> roles;
 
-    public String getId() {
-        return id;
+    public SnowflakeId getId() {
+        return SnowflakeId.of(id);
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setId(SnowflakeId id) {
+        this.id = id.id();
     }
 
     public String getName() {
@@ -42,11 +43,11 @@ public class GuildDocument {
         this.icon = icon;
     }
 
-    public String getOwnerId() {
+    public SnowflakeId getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(String ownerId) {
+    public void setOwnerId(SnowflakeId ownerId) {
         this.ownerId = ownerId;
     }
 

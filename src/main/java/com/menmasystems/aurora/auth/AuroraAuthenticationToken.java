@@ -4,6 +4,7 @@
 package com.menmasystems.aurora.auth;
 
 import com.menmasystems.aurora.exception.InvalidTokenSignatureException;
+import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import reactor.core.publisher.Mono;
 
@@ -19,10 +20,10 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
     private static final String SIGNING_KEY = "AuroraRestApplication";
     private static final int EPOCH = 1735689600;
 
-    private final String principal;
+    private final SnowflakeId principal;
     private final Integer timestamp;
 
-    public AuroraAuthenticationToken(String principal, Integer credentials) {
+    public AuroraAuthenticationToken(SnowflakeId principal, Integer credentials) {
         super(null);
         this.principal = principal;
         this.timestamp = credentials;
@@ -35,28 +36,32 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public String getPrincipal() {
+    public SnowflakeId getPrincipal() {
         return principal;
     }
 
     public String generateSignedToken() {
-        int timeDiff = getCredentials() - EPOCH;
-        byte[] timestampBytes = ByteBuffer.allocate(4).putInt(timeDiff).array();
+        byte[] principal = getPrincipal().toString().getBytes();
+        byte[] timestampBytes = ByteBuffer.allocate(4).putInt(getCredentials() - EPOCH).array();
 
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-        String encodedPrincipalId = encoder.encodeToString(getPrincipal().getBytes());
+        String encodedPrincipalId = encoder.encodeToString(principal);
         String encodedTimestamp = encoder.encodeToString(timestampBytes);
         String encodedSignature = createHmac(encodedPrincipalId + encodedTimestamp);
 
         return encodedPrincipalId + "." + encodedTimestamp + "." + encodedSignature;
     }
 
-    public static String generateSignedToken(String principalId, int timestamp) {
+    public static String generateSignedToken(SnowflakeId principalId, int timestamp) {
         return new AuroraAuthenticationToken(principalId, timestamp).generateSignedToken();
     }
 
     public static Mono<AuroraAuthenticationToken> verifySignedToken(String token) throws InvalidTokenSignatureException {
         if (token == null || token.isEmpty()) {
+            return Mono.error(new InvalidTokenSignatureException());
+        }
+
+        if(!token.matches("^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")) {
             return Mono.error(new InvalidTokenSignatureException());
         }
 
@@ -77,10 +82,14 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
         }
 
         Base64.Decoder decoder = Base64.getUrlDecoder();
-        String principalId = new String(decoder.decode(encodedPrincipalId));
-        int timestamp = EPOCH + ByteBuffer.wrap(decoder.decode(encodedTimestamp)).getInt();
-
-        return Mono.just(new AuroraAuthenticationToken(principalId, timestamp));
+        try {
+            String decodedPrincipalId = new String(decoder.decode(encodedPrincipalId));
+            SnowflakeId principalId = new SnowflakeId(Long.parseLong(decodedPrincipalId));
+            int timestamp = EPOCH + ByteBuffer.wrap(decoder.decode(encodedTimestamp)).getInt();
+            return Mono.just(new AuroraAuthenticationToken(principalId, timestamp));
+        } catch (NumberFormatException e) {
+            return Mono.error(new InvalidTokenSignatureException());
+        }
     }
 
     private static String createHmac(String payload) {

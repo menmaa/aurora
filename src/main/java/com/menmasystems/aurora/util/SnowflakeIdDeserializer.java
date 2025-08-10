@@ -1,0 +1,18 @@
+/*
+ * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
+ */
+package com.menmasystems.aurora.util;
+
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+
+import java.io.IOException;
+
+public class SnowflakeIdDeserializer extends JsonDeserializer<SnowflakeId> {
+    @Override
+    public SnowflakeId deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
+        return new SnowflakeId(Long.parseLong(p.getText()));
+    }
+}

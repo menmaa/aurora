@@ -4,15 +4,16 @@
 package com.menmasystems.aurora.dto;
 
 import com.menmasystems.aurora.model.GuildDocument;
+import com.menmasystems.aurora.util.SnowflakeId;
 
 import java.util.List;
 
 public class Guild {
 
-    private final String id;
+    private final SnowflakeId id;
     private final String name;
     private final String icon;
-    private final String ownerId;
+    private final SnowflakeId ownerId;
     private final List<Role> roles;
 
     public Guild(GuildDocument guild) {
@@ -23,7 +24,7 @@ public class Guild {
         this.roles = guild.getRoles().stream().map(Role::new).toList();
     }
 
-    public String getId() {
+    public SnowflakeId getId() {
         return id;
     }
 
@@ -35,7 +36,7 @@ public class Guild {
         return icon;
     }
 
-    public String getOwnerId() {
+    public SnowflakeId getOwnerId() {
         return ownerId;
     }
 

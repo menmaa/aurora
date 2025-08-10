@@ -4,10 +4,11 @@
 package com.menmasystems.aurora.dto;
 
 import com.menmasystems.aurora.model.RoleDocument;
+import com.menmasystems.aurora.util.SnowflakeId;
 
 public class Role {
 
-    private final String id;
+    private final SnowflakeId id;
     private final String name;
     private final long permissions;
     private final int color;
@@ -27,7 +28,7 @@ public class Role {
         this.mentionable = role.isMentionable();
     }
 
-    public String getId() {
+    public SnowflakeId getId() {
         return id;
     }
 
