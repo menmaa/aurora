@@ -23,20 +23,24 @@ public class SnowflakeGenerator {
     private final AtomicLong lastTimestamp = new AtomicLong(-1L);
     private final ConcurrentHashMap<Long, AtomicLong> threadWaitCount = new ConcurrentHashMap<>();
 
-    private final SnowflakeAllocator snowflakeAllocator;
+    private final ReactiveRedisWorkerIdSnowflakeAllocator allocator;
 
-    public SnowflakeGenerator(SnowflakeAllocator snowflakeAllocator) {
-        this.snowflakeAllocator = snowflakeAllocator;
+    public SnowflakeGenerator(ReactiveRedisWorkerIdSnowflakeAllocator snowflakeAllocator) {
+        this.allocator = snowflakeAllocator;
         this.processId = 0;
     }
 
     public synchronized SnowflakeId generate() {
-        int workerId = snowflakeAllocator.getWorkerId();
+        if (!allocator.isAllocated()) {
+            throw new IllegalStateException("No workerId allocated, refusing to generate ID");
+        }
+
+        int workerId = allocator.getWorkerId();
         long currentTime = System.currentTimeMillis();
         long lastTime = lastTimestamp.get();
 
         if (currentTime < lastTime) {
-            throw new RuntimeException("Clock moved backwards. Refusing to generate id");
+            throw new RuntimeException("Clock moved backwards. Refusing to generate ID");
         }
 
         long seq;

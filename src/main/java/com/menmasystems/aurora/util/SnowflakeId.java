@@ -20,4 +20,8 @@ public record SnowflakeId(long id) {
     public String toString() {
         return String.valueOf(id);
     }
+
+    public boolean equals(SnowflakeId other) {
+        return this.id == other.id;
+    }
 }
