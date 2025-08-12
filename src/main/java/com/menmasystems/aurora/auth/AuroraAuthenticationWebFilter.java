@@ -38,11 +38,8 @@ public class AuroraAuthenticationWebFilter implements WebFilter {
 
         String tokenStr = authHeader.substring(7);
         return AuroraAuthenticationToken.verifySignedToken(tokenStr)
-                .flatMap(auth -> sessionService.isSessionValid(auth)
-                    .flatMap(valid -> valid
-                            ? Mono.just(auth)
-                            : Mono.error(new UnauthenticatedUserException())
-                    ))
+                .filterWhen(sessionService::isSessionValid)
+                .switchIfEmpty(Mono.error(new UnauthenticatedUserException()))
                 .flatMap(auth -> chain.filter(exchange)
                         .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)))
                 .onErrorResume(ex -> chain.filter(exchange));

@@ -56,7 +56,7 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
         return new AuroraAuthenticationToken(principalId, timestamp).generateSignedToken();
     }
 
-    public static Mono<AuroraAuthenticationToken> verifySignedToken(String token) throws InvalidTokenSignatureException {
+    public static Mono<AuroraAuthenticationToken> verifySignedToken(String token) {
         if (token == null || token.isEmpty()) {
             return Mono.error(new InvalidTokenSignatureException());
         }
@@ -86,6 +86,7 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
             String decodedPrincipalId = new String(decoder.decode(encodedPrincipalId));
             SnowflakeId principalId = new SnowflakeId(Long.parseLong(decodedPrincipalId));
             int timestamp = EPOCH + ByteBuffer.wrap(decoder.decode(encodedTimestamp)).getInt();
+
             return Mono.just(new AuroraAuthenticationToken(principalId, timestamp));
         } catch (NumberFormatException e) {
             return Mono.error(new InvalidTokenSignatureException());
