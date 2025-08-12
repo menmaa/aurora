@@ -3,9 +3,8 @@
  */
 package com.menmasystems.aurora.auth;
 
-import com.menmasystems.aurora.exception.InvalidTokenSignatureException;
+import com.menmasystems.aurora.auth.exception.InvalidTokenSignatureException;
 import com.menmasystems.aurora.util.SnowflakeId;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
 import reactor.core.publisher.Mono;
 
 import javax.crypto.Mac;
@@ -15,29 +14,35 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
+public class AuroraAuthentication {
     // TODO Retrieve Key from AWS Secrets Manager or KMS (Probably KMS)
     private static final String SIGNING_KEY = "AuroraRestApplication";
     private static final int EPOCH = 1735689600;
 
     private final SnowflakeId principal;
-    private final Integer timestamp;
+    private final int timestamp;
 
-    public AuroraAuthenticationToken(SnowflakeId principal, Integer credentials) {
-        super(null);
+    private boolean authenticated = true;
+
+    public AuroraAuthentication(SnowflakeId principal, int credentials) {
         this.principal = principal;
         this.timestamp = credentials;
-        setAuthenticated(true);
     }
 
-    @Override
-    public Integer getCredentials() {
+    public int getCredentials() {
         return timestamp;
     }
 
-    @Override
     public SnowflakeId getPrincipal() {
         return principal;
+    }
+
+    public boolean isAuthenticated() {
+        return authenticated;
+    }
+
+    public void setAuthenticated(boolean authenticated) {
+        this.authenticated = authenticated;
     }
 
     public String generateSignedToken() {
@@ -53,10 +58,10 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     public static String generateSignedToken(SnowflakeId principalId, int timestamp) {
-        return new AuroraAuthenticationToken(principalId, timestamp).generateSignedToken();
+        return new AuroraAuthentication(principalId, timestamp).generateSignedToken();
     }
 
-    public static Mono<AuroraAuthenticationToken> verifySignedToken(String token) {
+    public static Mono<AuroraAuthentication> verifySignedToken(String token) {
         if (token == null || token.isEmpty()) {
             return Mono.error(new InvalidTokenSignatureException());
         }
@@ -87,7 +92,7 @@ public class AuroraAuthenticationToken extends AbstractAuthenticationToken {
             SnowflakeId principalId = new SnowflakeId(Long.parseLong(decodedPrincipalId));
             int timestamp = EPOCH + ByteBuffer.wrap(decoder.decode(encodedTimestamp)).getInt();
 
-            return Mono.just(new AuroraAuthenticationToken(principalId, timestamp));
+            return Mono.just(new AuroraAuthentication(principalId, timestamp));
         } catch (NumberFormatException e) {
             return Mono.error(new InvalidTokenSignatureException());
         }

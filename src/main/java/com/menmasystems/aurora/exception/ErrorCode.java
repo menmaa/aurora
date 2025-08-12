@@ -3,6 +3,8 @@
  */
 package com.menmasystems.aurora.exception;
 
+import org.springframework.http.HttpStatusCode;
+
 public enum ErrorCode {
     INVALID_REQUEST_BODY(1000, 400, "Invalid request body"),
     GUILD_NOT_FOUND(1001, 404, "Unknown Guild"),
@@ -16,12 +18,12 @@ public enum ErrorCode {
     CAPTCHA_FAILED(4001, 400, "Bad Request");
 
     private final int code;
-    private final int statusCode;
+    private final HttpStatusCode statusCode;
     private final String message;
 
     ErrorCode(int code, int statusCode, String message) {
         this.code = code;
-        this.statusCode = statusCode;
+        this.statusCode = HttpStatusCode.valueOf(statusCode);
         this.message = message;
     }
 
@@ -33,7 +35,7 @@ public enum ErrorCode {
         return message;
     }
 
-    public int getStatusCode() {
+    public HttpStatusCode getStatusCode() {
         return statusCode;
     }
 }

@@ -3,7 +3,11 @@
  */
 package com.menmasystems.aurora.controller;
 
-import com.menmasystems.aurora.auth.AuroraAuthenticationToken;
+import com.menmasystems.aurora.annotation.AuthContext;
+import com.menmasystems.aurora.annotation.Secured;
+import com.menmasystems.aurora.auth.AuroraAuthentication;
+import com.menmasystems.aurora.auth.AuroraSecurityContext;
+import com.menmasystems.aurora.auth.AuroraSecurityContextHolder;
 import com.menmasystems.aurora.dto.LoginUserRequest;
 import com.menmasystems.aurora.dto.LoginUserResponse;
 import com.menmasystems.aurora.dto.RegisterUserRequest;
@@ -16,12 +20,10 @@ import com.menmasystems.aurora.service.ValidationService;
 import jakarta.validation.Valid;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
-
 
 @RestController
 @RequestMapping("/auth")
@@ -56,14 +58,15 @@ class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<LoginUserResponse> loginUser(@Valid @RequestBody LoginUserRequest request) {
         return userService.getUserByLoginCredentials(request.getEmail(), request.getPassword())
+                .switchIfEmpty(Mono.error(new ApiException(ErrorCode.USER_AUTH_INVALID_CREDS)))
                 .flatMap(user -> sessionService.createSession(user.getId()))
-                .map(LoginUserResponse::new)
-                .switchIfEmpty(Mono.error(new ApiException(ErrorCode.USER_AUTH_INVALID_CREDS)));
+                .map(LoginUserResponse::new);
     }
 
     @DeleteMapping("/logout")
+    @Secured
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Mono<Void> logoutUser(@AuthenticationPrincipal AuroraAuthenticationToken auth) {
+    public Mono<Void> logoutUser(@AuthContext AuroraAuthentication auth) {
         return sessionService.invalidateSession(auth);
     }
 }

@@ -3,20 +3,20 @@
  */
 package com.menmasystems.aurora.auth;
 
-import com.menmasystems.aurora.exception.UnauthenticatedUserException;
+import com.menmasystems.aurora.auth.exception.UnauthenticatedUserException;
 import com.menmasystems.aurora.service.SessionService;
+import com.menmasystems.aurora.web.filter.SecurityWebFiltersOrder;
+import org.springframework.boot.web.reactive.filter.OrderedWebFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AuroraAuthenticationWebFilter implements WebFilter {
+public class AuroraAuthenticationWebFilter implements OrderedWebFilter {
 
     private final SessionService sessionService;
 
@@ -31,17 +31,30 @@ public class AuroraAuthenticationWebFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = getAuthTokenFromHeader(exchange);
+        if (token == null) {
             return chain.filter(exchange);
         }
 
-        String tokenStr = authHeader.substring(7);
-        return AuroraAuthenticationToken.verifySignedToken(tokenStr)
+        return AuroraAuthentication.verifySignedToken(token)
                 .filterWhen(sessionService::isSessionValid)
                 .switchIfEmpty(Mono.error(new UnauthenticatedUserException()))
                 .flatMap(auth -> chain.filter(exchange)
-                        .contextWrite(ReactiveSecurityContextHolder.withAuthentication(auth)))
+                        .contextWrite(AuroraSecurityContextHolder.withAuthentication(auth)))
                 .onErrorResume(ex -> chain.filter(exchange));
+    }
+
+    private String getAuthTokenFromHeader(ServerWebExchange exchange) {
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+
+        return authHeader.substring(7);
+    }
+
+    @Override
+    public int getOrder() {
+        return SecurityWebFiltersOrder.AUTHENTICATION.getOrder();
     }
 }
