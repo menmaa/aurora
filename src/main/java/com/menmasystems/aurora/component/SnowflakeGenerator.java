@@ -23,11 +23,11 @@ public class SnowflakeGenerator {
     private final AtomicLong lastTimestamp = new AtomicLong(-1L);
     private final ConcurrentHashMap<Long, AtomicLong> threadWaitCount = new ConcurrentHashMap<>();
 
-    private final ReactiveRedisWorkerIdSnowflakeAllocator allocator;
+    private final ReactiveRedisSnowflakeWorkerIdAllocator allocator;
 
-    public SnowflakeGenerator(ReactiveRedisWorkerIdSnowflakeAllocator snowflakeAllocator) {
+    public SnowflakeGenerator(ReactiveRedisSnowflakeWorkerIdAllocator snowflakeAllocator) {
         this.allocator = snowflakeAllocator;
-        this.processId = 0;
+        this.processId = ProcessHandle.current().pid() % (MAX_PROCESS_ID + 1);
     }
 
     public synchronized SnowflakeId generate() {

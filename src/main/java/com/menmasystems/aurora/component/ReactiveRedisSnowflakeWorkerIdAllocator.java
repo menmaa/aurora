@@ -9,19 +9,22 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
-public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
-    private static final Logger log = LoggerFactory.getLogger(ReactiveRedisWorkerIdSnowflakeAllocator.class);
+public class ReactiveRedisSnowflakeWorkerIdAllocator implements SmartLifecycle {
+    private static final Logger log = LoggerFactory.getLogger(ReactiveRedisSnowflakeWorkerIdAllocator.class);
 
     private static final String WORKER_KEY_PREFIX = "snowflake:workers:";
     private static final int MAX_WORKER_ID = 31; // 5 bits -> 0..31
@@ -30,21 +33,28 @@ public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
     private static final Duration RENEW_INTERVAL = Duration.ofSeconds(10);
     private static final Duration MAX_JITTER = Duration.ofMillis(500); // +/- 500ms jitter
 
+    private static final int RETRY_DELAY = 100;
+    private static final int RETRY_ATTEMPTS = 3;
+
     private final ReactiveStringRedisTemplate redisTemplate;
     private final ConfigurableApplicationContext context;
 
     private final AtomicInteger assignedWorkerId = new AtomicInteger(-1);
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private volatile Disposable renewalDisposable; // used to cancel the renewal loop
+    private final Sinks.Empty<Void> shutdownSignal = Sinks.empty();
+    private volatile Disposable disposableRenewal; // used to cancel the renewal loop
 
-    public ReactiveRedisWorkerIdSnowflakeAllocator(ReactiveStringRedisTemplate redisTemplate, ConfigurableApplicationContext context) {
+    public ReactiveRedisSnowflakeWorkerIdAllocator(ReactiveStringRedisTemplate redisTemplate, ConfigurableApplicationContext context) {
         this.redisTemplate = redisTemplate;
         this.context = context;
     }
 
     private Mono<Integer> acquireWorkerId() {
+        log.debug("Attempting to allocate Snowflake Worker ID...");
+
         return tryAllocateRange(0, MAX_WORKER_ID)
                 .switchIfEmpty(Mono.error(() -> new IllegalStateException("No available Snowflake Worker IDs")))
+                .doOnNext(id -> log.info("Allocated Snowflake Worker ID: {}", id))
                 .flatMap(id -> startRenewalLoop(id).thenReturn(id));
     }
 
@@ -71,36 +81,28 @@ public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
         if(assignedWorkerId.get() != id) {
             return Mono.error(new IllegalStateException("Assigned Snowflake Worker ID mismatch"));
         }
+        log.debug("Starting renewal loop for Snowflake Worker ID: {}", id);
         disposeRenewal();
 
-        // noinspection unused
-        renewalDisposable = Mono.defer(() -> Mono.delay(withJitter(RENEW_INTERVAL)))
+        disposableRenewal = Mono.defer(() -> Mono.delay(withJitter(RENEW_INTERVAL)))
                 .repeat()
-                .flatMap(tick -> !running.get()
-                    ? Mono.empty()
-                    : renewOnce(id)
-                            .onErrorResume(err -> {
-                                log.error("Failed to renew Snowflake Worker ID: {}", id, err);
-                                return Mono.empty();
-                            })
-                )
+                .flatMap(tick -> running.get() ? renewOnce(id) : Mono.empty())
+                .onErrorResume(err -> markLost().thenReturn(true))
                 .subscribeOn(Schedulers.boundedElastic())
-                .subscribe(ok ->
-                    log.debug("Renewal loop for Snowflake Worker ID: {} is running", id),
-                        err -> markLost(), this::markLost);
+                .subscribe(ok -> log.debug("Renewal loop for Snowflake Worker ID: {} completed with no errors", id),
+                        err -> {
+                            log.error("Renewal loop for Snowflake Worker ID: {} failed", id, err);
+                            disposeRenewal();
+                        });
 
         return Mono.empty();
     }
 
     private Mono<Boolean> renewOnce(int id) {
         return redisTemplate.expire(workerKey(id), LEASE_TTL)
-                .flatMap(success -> {
-                    if(Boolean.TRUE.equals(success)) {
-                        log.info("Renewed Snowflake Worker ID: {}", id);
-                        return Mono.just(true);
-                    }
-                    return Mono.error(new IllegalStateException("Failed to renew lease for Snowflake Worker ID: " + id));
-                });
+                .filter(success -> success)
+                .switchIfEmpty(Mono.error(new IllegalStateException("Failed to renew lease for Snowflake Worker ID: " + id)))
+                .doOnNext(success -> log.info("Renewed Snowflake Worker ID: {}", id));
     }
 
     private Duration withJitter(Duration base) {
@@ -109,10 +111,43 @@ public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
         return Duration.ofMillis(Math.max(1, baseMillis + jitter));
     }
 
-    private void markLost() {
+    private Mono<Void> markLost() {
         assignedWorkerId.set(-1);
-        disposeRenewal();
-        log.error("Snowflake Worker ID Allocation lost. ID generation will be interrupted if not reallocated.");
+        log.warn("Snowflake Worker ID Allocation lost. ID generation will be interrupted until reallocation.");
+
+        return tryReallocate(RETRY_DELAY, 1)
+                .doOnError(err -> {
+                    log.error("FATAL: Snowflake Worker ID is lost.", err);
+                    int exitCode = SpringApplication.exit(context, () -> 1);
+                    System.exit(exitCode);
+                })
+                .then();
+    }
+
+    private Mono<Integer> tryReallocate(int retryDelay, int retryAttempt) {
+        return tryReallocate(retryDelay, retryAttempt, null);
+    }
+
+    private Mono<Integer> tryReallocate(int retryDelay, int retryAttempt, @Nullable Throwable lastErr) {
+        if(retryAttempt > RETRY_ATTEMPTS) {
+            return Mono.error(new IllegalStateException(
+                    "Snowflake Worker ID Allocation failed after " + RETRY_ATTEMPTS + " attempts", lastErr));
+        }
+
+        return Mono.defer(() -> {
+            long delay = retryDelay * (1L << (retryAttempt - 1));
+
+            return Mono.delay(withJitter(Duration.ofMillis(delay)))
+                    .takeUntilOther(shutdownSignal.asMono())
+                    .flatMap(tick -> running.get()
+                            ? acquireWorkerId()
+                            : Mono.error(new CancellationException("Reallocation cancelled due to shutdown."))
+                    )
+                    .onErrorResume(err -> {
+                        log.warn("Retry attempt {} failed after {} ms. {}", retryAttempt, delay, err.getMessage());
+                        return tryReallocate(retryDelay, retryAttempt + 1, err);
+                    });
+        });
     }
 
     private Mono<Void> releaseWorkerId() {
@@ -125,10 +160,11 @@ public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
     }
 
     private void disposeRenewal() {
-        if (renewalDisposable != null && !renewalDisposable.isDisposed()) {
-            renewalDisposable.dispose();
+        if (disposableRenewal != null && !disposableRenewal.isDisposed()) {
+            log.debug("Disposing existing renewal loop...");
+            disposableRenewal.dispose();
         }
-        renewalDisposable = null;
+        disposableRenewal = null;
     }
 
     @Override
@@ -143,12 +179,13 @@ public class ReactiveRedisWorkerIdSnowflakeAllocator implements SmartLifecycle {
                     int exitCode = SpringApplication.exit(context, () -> 1);
                     System.exit(exitCode);
                 })
-                .subscribe(id -> log.info("Allocated Snowflake Worker ID: {}", id));
+                .subscribe();
     }
 
     @Override
     public void stop() {
         if (running.compareAndSet(true, false)) {
+            shutdownSignal.tryEmitEmpty();
             disposeRenewal();
 
             int workerId = assignedWorkerId.get();
