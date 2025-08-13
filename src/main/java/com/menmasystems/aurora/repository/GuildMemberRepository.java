@@ -11,4 +11,5 @@ import reactor.core.publisher.Mono;
 public interface GuildMemberRepository extends ReactiveMongoRepository<GuildMemberDocument, String> {
     Mono<GuildMemberDocument> findByGuildIdAndUserId(SnowflakeId guildId, SnowflakeId userId);
     Mono<Void> deleteByGuildIdAndUserId(SnowflakeId guildId, SnowflakeId userId);
+    Mono<Void> deleteByGuildId(SnowflakeId guildId);
 }

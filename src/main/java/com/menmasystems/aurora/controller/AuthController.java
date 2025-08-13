@@ -4,17 +4,15 @@
 package com.menmasystems.aurora.controller;
 
 import com.menmasystems.aurora.annotation.AuthContext;
-import com.menmasystems.aurora.annotation.Secured;
+import com.menmasystems.aurora.annotation.SecuredRequest;
 import com.menmasystems.aurora.auth.AuroraAuthentication;
-import com.menmasystems.aurora.auth.AuroraSecurityContext;
-import com.menmasystems.aurora.auth.AuroraSecurityContextHolder;
 import com.menmasystems.aurora.dto.LoginUserRequest;
 import com.menmasystems.aurora.dto.LoginUserResponse;
 import com.menmasystems.aurora.dto.RegisterUserRequest;
 import com.menmasystems.aurora.dto.RegisterUserResponse;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
-import com.menmasystems.aurora.service.SessionService;
+import com.menmasystems.aurora.auth.session.SessionService;
 import com.menmasystems.aurora.service.UserService;
 import com.menmasystems.aurora.service.ValidationService;
 import jakarta.validation.Valid;
@@ -64,7 +62,7 @@ class AuthController {
     }
 
     @DeleteMapping("/logout")
-    @Secured
+    @SecuredRequest
     @ResponseStatus(HttpStatus.ACCEPTED)
     public Mono<Void> logoutUser(@AuthContext AuroraAuthentication auth) {
         return sessionService.invalidateSession(auth);

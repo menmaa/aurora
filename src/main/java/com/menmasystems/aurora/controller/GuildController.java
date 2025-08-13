@@ -3,47 +3,69 @@
  */
 package com.menmasystems.aurora.controller;
 
-import com.menmasystems.aurora.auth.AuroraAuthenticationToken;
+import com.menmasystems.aurora.annotation.AuthContext;
+import com.menmasystems.aurora.annotation.GuildActionRequest;
+import com.menmasystems.aurora.annotation.SecuredRequest;
+import com.menmasystems.aurora.auth.AuroraAuthentication;
 import com.menmasystems.aurora.dto.CreateGuildRequest;
 import com.menmasystems.aurora.dto.Guild;
+import com.menmasystems.aurora.dto.UpdateGuildRequest;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
 import com.menmasystems.aurora.service.GuildMemberService;
 import com.menmasystems.aurora.service.GuildService;
+import com.menmasystems.aurora.util.Permission;
 import com.menmasystems.aurora.util.SnowflakeId;
+import com.menmasystems.aurora.web.context.GuildRelatedRequestContext;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/guilds")
+@SecuredRequest
 class GuildController {
 
     private final GuildService guildService;
     private final GuildMemberService guildMemberService;
 
-    public GuildController(GuildService guildService, GuildMemberService guildMemberService) {
+    GuildController(GuildService guildService, GuildMemberService guildMemberService) {
         this.guildService = guildService;
         this.guildMemberService = guildMemberService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Guild> createGuild(@AuthenticationPrincipal AuroraAuthenticationToken auth, @Valid @RequestBody CreateGuildRequest request) {
-        return guildService.createGuild(auth.getPrincipal(), request)
-                .map(Guild::new);
+    public Mono<Guild> createGuild(@AuthContext AuroraAuthentication auth, @Valid @RequestBody CreateGuildRequest request) {
+        return guildService.createGuild(auth.userId(), request).map(Guild::new);
     }
 
     @GetMapping("/{guildId}")
+    @GuildActionRequest
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Guild> getGuild(@AuthenticationPrincipal AuroraAuthenticationToken auth, @PathVariable SnowflakeId guildId) {
-        return guildService.getGuildById(guildId)
-                .switchIfEmpty(Mono.error(new ApiException(ErrorCode.GUILD_NOT_FOUND)))
-                .flatMap(guild -> guildMemberService.isMember(guild.getId(), auth.getPrincipal())
-                    .flatMap(isMember -> isMember
-                            ? Mono.just(new Guild(guild))
-                            : Mono.error(new ApiException(ErrorCode.GUILD_NOT_FOUND))));
+    public Mono<Guild> getGuild(GuildRelatedRequestContext ctx, @PathVariable SnowflakeId guildId) {
+        return Mono.just(ctx.guild()).map(Guild::new);
+    }
+
+    @PatchMapping("/{guildId}")
+    @GuildActionRequest(permission = Permission.MANAGE_GUILD)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<Guild> updateGuild(
+            GuildRelatedRequestContext ctx,
+            @PathVariable SnowflakeId guildId,
+            @Valid @RequestBody UpdateGuildRequest request) {
+        return guildService.updateGuild(ctx.guild(), request).map(Guild::new);
+    }
+
+    @DeleteMapping("/{guildId}")
+    @GuildActionRequest
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public Mono<Void> deleteGuild(GuildRelatedRequestContext ctx) {
+        if(!ctx.guild().getOwnerId().equals(ctx.member().getUserId())) {
+            return Mono.error(new ApiException(ErrorCode.MISSING_ACCESS));
+        }
+
+        return guildService.deleteGuild(ctx.guild().getId());
     }
 }

@@ -14,51 +14,25 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-public class AuroraAuthentication {
+public record AuroraAuthentication(SnowflakeId userId, int timestamp) {
     // TODO Retrieve Key from AWS Secrets Manager or KMS (Probably KMS)
     private static final String SIGNING_KEY = "AuroraRestApplication";
     private static final int EPOCH = 1735689600;
 
-    private final SnowflakeId principal;
-    private final int timestamp;
-
-    private boolean authenticated = true;
-
-    public AuroraAuthentication(SnowflakeId principal, int credentials) {
-        this.principal = principal;
-        this.timestamp = credentials;
-    }
-
-    public int getCredentials() {
-        return timestamp;
-    }
-
-    public SnowflakeId getPrincipal() {
-        return principal;
-    }
-
-    public boolean isAuthenticated() {
-        return authenticated;
-    }
-
-    public void setAuthenticated(boolean authenticated) {
-        this.authenticated = authenticated;
-    }
-
     public String generateSignedToken() {
-        byte[] principal = getPrincipal().toString().getBytes();
-        byte[] timestampBytes = ByteBuffer.allocate(4).putInt(getCredentials() - EPOCH).array();
+        byte[] userId = userId().toString().getBytes();
+        byte[] timestampBytes = ByteBuffer.allocate(4).putInt(timestamp() - EPOCH).array();
 
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-        String encodedPrincipalId = encoder.encodeToString(principal);
+        String encodedUserId = encoder.encodeToString(userId);
         String encodedTimestamp = encoder.encodeToString(timestampBytes);
-        String encodedSignature = createHmac(encodedPrincipalId + encodedTimestamp);
+        String encodedSignature = createHmac(encodedUserId + encodedTimestamp);
 
-        return encodedPrincipalId + "." + encodedTimestamp + "." + encodedSignature;
+        return encodedUserId + "." + encodedTimestamp + "." + encodedSignature;
     }
 
-    public static String generateSignedToken(SnowflakeId principalId, int timestamp) {
-        return new AuroraAuthentication(principalId, timestamp).generateSignedToken();
+    public static String generateSignedToken(SnowflakeId userId, int timestamp) {
+        return new AuroraAuthentication(userId, timestamp).generateSignedToken();
     }
 
     public static Mono<AuroraAuthentication> verifySignedToken(String token) {
@@ -66,7 +40,7 @@ public class AuroraAuthentication {
             return Mono.error(new InvalidTokenSignatureException());
         }
 
-        if(!token.matches("^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")) {
+        if (!token.matches("^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+$")) {
             return Mono.error(new InvalidTokenSignatureException());
         }
 
@@ -75,11 +49,11 @@ public class AuroraAuthentication {
             return Mono.error(new InvalidTokenSignatureException());
         }
 
-        String encodedPrincipalId = parts[0];
+        String encodedUserId = parts[0];
         String encodedTimestamp = parts[1];
         String tokenSignature = parts[2];
 
-        String payload = encodedPrincipalId + encodedTimestamp;
+        String payload = encodedUserId + encodedTimestamp;
         String expectedSignature = createHmac(payload);
 
         if (!secureEquals(tokenSignature, expectedSignature)) {
@@ -88,11 +62,11 @@ public class AuroraAuthentication {
 
         Base64.Decoder decoder = Base64.getUrlDecoder();
         try {
-            String decodedPrincipalId = new String(decoder.decode(encodedPrincipalId));
-            SnowflakeId principalId = new SnowflakeId(Long.parseLong(decodedPrincipalId));
+            String decodedUserId = new String(decoder.decode(encodedUserId));
+            SnowflakeId userId = new SnowflakeId(Long.parseLong(decodedUserId));
             int timestamp = EPOCH + ByteBuffer.wrap(decoder.decode(encodedTimestamp)).getInt();
 
-            return Mono.just(new AuroraAuthentication(principalId, timestamp));
+            return Mono.just(new AuroraAuthentication(userId, timestamp));
         } catch (NumberFormatException e) {
             return Mono.error(new InvalidTokenSignatureException());
         }

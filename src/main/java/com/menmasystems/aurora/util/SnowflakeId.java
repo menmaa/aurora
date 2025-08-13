@@ -10,6 +10,8 @@ import org.springframework.lang.NonNull;
 @JsonDeserialize(using = SnowflakeIdDeserializer.class)
 public record SnowflakeId(long id) {
 
+    public static final String SNOWFLAKE_REGEX_PATTERN = "^[0-9]+$";
+
     public static SnowflakeId of(long id) {
         return new SnowflakeId(id);
     }

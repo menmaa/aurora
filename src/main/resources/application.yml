@@ -6,3 +6,10 @@ spring:
       url: redis://localhost:6379/
     mongodb:
       uri: mongodb://localhost:27017/aurora
+logging:
+  level:
+    com:
+      menmasystems:
+        aurora:
+          component:
+            com.menmasystems.aurora.component.ReactiveRedisSnowflakeWorkerIdAllocator: DEBUG
