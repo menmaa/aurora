@@ -4,11 +4,14 @@
 package com.menmasystems.aurora.model;
 
 import com.menmasystems.aurora.util.SnowflakeId;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 
+@EqualsAndHashCode
 @Document(collection = "guilds")
 public class GuildDocument {
 
@@ -18,6 +21,7 @@ public class GuildDocument {
     private String icon;
     private SnowflakeId ownerId;
     private List<RoleDocument> roles;
+    private Long dateDeleted = null;
 
     public SnowflakeId getId() {
         return SnowflakeId.of(id);
@@ -57,5 +61,19 @@ public class GuildDocument {
 
     public void setRoles(List<RoleDocument> roles) {
         this.roles = roles;
+    }
+
+    @Nullable
+    public Long getDateDeleted() {
+        return dateDeleted;
+    }
+
+    public void setDateDeleted(long dateDeleted) {
+        this.dateDeleted = dateDeleted;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("GuildDocument{id=%s, name='%s'}", id, name);
     }
 }

@@ -4,10 +4,12 @@
 package com.menmasystems.aurora.model;
 
 import com.menmasystems.aurora.util.SnowflakeId;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+@EqualsAndHashCode
 @Document(collection = "guild_members")
 public class GuildMemberDocument {
 

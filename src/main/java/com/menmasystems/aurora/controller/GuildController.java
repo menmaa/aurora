@@ -7,9 +7,9 @@ import com.menmasystems.aurora.annotation.AuthContext;
 import com.menmasystems.aurora.annotation.GuildActionRequest;
 import com.menmasystems.aurora.annotation.SecuredRequest;
 import com.menmasystems.aurora.auth.AuroraAuthentication;
-import com.menmasystems.aurora.dto.CreateGuildRequest;
-import com.menmasystems.aurora.dto.Guild;
-import com.menmasystems.aurora.dto.UpdateGuildRequest;
+import com.menmasystems.aurora.dto.guild.CreateGuildRequest;
+import com.menmasystems.aurora.dto.guild.GuildDto;
+import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
 import com.menmasystems.aurora.service.GuildMemberService;
@@ -37,31 +37,31 @@ class GuildController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Guild> createGuild(@AuthContext AuroraAuthentication auth, @Valid @RequestBody CreateGuildRequest request) {
-        return guildService.createGuild(auth.userId(), request).map(Guild::new);
+    public Mono<GuildDto> createGuild(@AuthContext AuroraAuthentication auth, @Valid @RequestBody CreateGuildRequest request) {
+        return guildService.createGuild(auth.userId(), request).map(GuildDto::new);
     }
 
     @GetMapping("/{guildId}")
     @GuildActionRequest
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Guild> getGuild(GuildRelatedRequestContext ctx, @PathVariable SnowflakeId guildId) {
-        return Mono.just(ctx.guild()).map(Guild::new);
+    public Mono<GuildDto> getGuild(GuildRelatedRequestContext ctx, @PathVariable SnowflakeId guildId) {
+        return Mono.just(ctx.guild()).map(GuildDto::new);
     }
 
     @PatchMapping("/{guildId}")
     @GuildActionRequest(permission = Permission.MANAGE_GUILD)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Guild> updateGuild(
+    public Mono<GuildDto> updateGuild(
             GuildRelatedRequestContext ctx,
             @PathVariable SnowflakeId guildId,
             @Valid @RequestBody UpdateGuildRequest request) {
-        return guildService.updateGuild(ctx.guild(), request).map(Guild::new);
+        return guildService.updateGuild(ctx.guild(), request).map(GuildDto::new);
     }
 
     @DeleteMapping("/{guildId}")
     @GuildActionRequest
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public Mono<Void> deleteGuild(GuildRelatedRequestContext ctx) {
+    public Mono<Void> deleteGuild(@PathVariable SnowflakeId guildId, GuildRelatedRequestContext ctx) {
         if(!ctx.guild().getOwnerId().equals(ctx.member().getUserId())) {
             return Mono.error(new ApiException(ErrorCode.MISSING_ACCESS));
         }

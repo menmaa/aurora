@@ -3,9 +3,12 @@
  */
 package com.menmasystems.aurora.model;
 
+import com.menmasystems.aurora.dto.guild.role.CreateGuildRoleRequest;
 import com.menmasystems.aurora.util.SnowflakeId;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@EqualsAndHashCode
 @Document
 public class RoleDocument {
 
@@ -23,6 +26,16 @@ public class RoleDocument {
     public RoleDocument(SnowflakeId id, String name) {
         this.id = id;
         this.name = name;
+    }
+
+    public RoleDocument(SnowflakeId id, CreateGuildRoleRequest request) {
+        this.id = id;
+        this.name = request.getName();
+        this.permissions = request.getPermissions();
+        this.color = request.getColor();
+        this.hoist = request.isHoist();
+        this.position = request.getPosition();
+        this.mentionable = request.isMentionable();
     }
 
     public SnowflakeId getId() {

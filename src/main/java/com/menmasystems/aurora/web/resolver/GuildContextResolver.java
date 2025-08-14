@@ -4,6 +4,7 @@
 package com.menmasystems.aurora.web.resolver;
 
 import com.menmasystems.aurora.annotation.GuildActionRequest;
+import com.menmasystems.aurora.web.context.GuildRelatedRequestContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;
@@ -19,7 +20,7 @@ import static com.menmasystems.aurora.web.mapping.AuroraAttributeMapping.GUILD_C
 public class GuildContextResolver implements HandlerMethodArgumentResolver {
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().isAssignableFrom(parameter.getParameterType())
+        return parameter.getParameterType().isAssignableFrom(GuildRelatedRequestContext.class)
                 && Objects.requireNonNull(parameter.getMethod()).isAnnotationPresent(GuildActionRequest.class);
     }
 

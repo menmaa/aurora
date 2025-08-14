@@ -4,9 +4,11 @@
 package com.menmasystems.aurora.model;
 
 import com.menmasystems.aurora.util.SnowflakeId;
+import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@EqualsAndHashCode
 @Document(collection = "users")
 public class UserDocument {
     @Id

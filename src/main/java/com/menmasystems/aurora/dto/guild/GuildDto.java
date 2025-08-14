@@ -1,27 +1,28 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.dto;
+package com.menmasystems.aurora.dto.guild;
 
+import com.menmasystems.aurora.dto.guild.role.RoleDto;
 import com.menmasystems.aurora.model.GuildDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 
 import java.util.List;
 
-public class Guild {
+public class GuildDto {
 
     private final SnowflakeId id;
     private final String name;
     private final String icon;
     private final SnowflakeId ownerId;
-    private final List<Role> roles;
+    private final List<RoleDto> roles;
 
-    public Guild(GuildDocument guild) {
+    public GuildDto(GuildDocument guild) {
         this.id = guild.getId();
         this.name = guild.getName();
         this.icon = guild.getIcon();
         this.ownerId = guild.getOwnerId();
-        this.roles = guild.getRoles().stream().map(Role::new).toList();
+        this.roles = guild.getRoles().stream().map(RoleDto::new).toList();
     }
 
     public SnowflakeId getId() {
@@ -40,7 +41,7 @@ public class Guild {
         return ownerId;
     }
 
-    public List<Role> getRoles() {
+    public List<RoleDto> getRoles() {
         return roles;
     }
 }

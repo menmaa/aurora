@@ -23,7 +23,25 @@ public record SnowflakeId(long id) {
         return String.valueOf(id);
     }
 
-    public boolean equals(SnowflakeId other) {
-        return this.id == other.id;
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == this) {
+            return true;
+        }
+
+        if (obj == null) {
+            return false;
+        }
+
+        if (!(obj instanceof SnowflakeId(long id1))) {
+            return false;
+        }
+
+        return this.id == id1;
     }
 }

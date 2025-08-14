@@ -4,19 +4,18 @@
 package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.component.SnowflakeGenerator;
-import com.menmasystems.aurora.dto.CreateGuildRequest;
-import com.menmasystems.aurora.dto.UpdateGuildRequest;
+import com.menmasystems.aurora.dto.guild.CreateGuildRequest;
+import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
 import com.menmasystems.aurora.model.GuildDocument;
 import com.menmasystems.aurora.model.RoleDocument;
 import com.menmasystems.aurora.repository.GuildRepository;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class GuildService {
@@ -68,21 +67,9 @@ public class GuildService {
         return guildRepository.save(guild);
     }
 
-    @Transactional
     public Mono<Void> deleteGuild(SnowflakeId guildId) {
-        return guildMemberService.removeAllMembers(guildId)
-                .then(guildRepository.deleteById(guildId.id()));
-    }
-
-    public Flux<RoleDocument> getRoles(SnowflakeId guildId) {
-        return getGuildById(guildId)
-                .flatMapIterable(GuildDocument::getRoles);
-    }
-
-    public Flux<RoleDocument> getRoles(SnowflakeId guildId, Set<SnowflakeId> roleIds) {
-        return getGuildById(guildId)
-                .flatMapIterable(GuildDocument::getRoles)
-                .filter(role -> roleIds.contains(role.getId()));
+        var date = Instant.now().toEpochMilli();
+        return guildRepository.updateDateDeletedById(guildId.id(), date).then();
     }
 
     private RoleDocument createDefaultRole(SnowflakeId guildId) {

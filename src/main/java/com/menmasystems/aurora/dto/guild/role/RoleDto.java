@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.dto;
+package com.menmasystems.aurora.dto.guild.role;
 
 import com.menmasystems.aurora.model.RoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 
-public class Role {
+public class RoleDto {
 
     private final SnowflakeId id;
     private final String name;
@@ -17,7 +17,7 @@ public class Role {
     private final boolean managed;
     private final boolean mentionable;
 
-    public Role(RoleDocument role) {
+    public RoleDto(RoleDocument role) {
         this.id = role.getId();
         this.name = role.getName();
         this.permissions = role.getPermissions();
