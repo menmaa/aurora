@@ -3,7 +3,7 @@
  */
 package com.menmasystems.aurora.dto.guild.role;
 
-import com.menmasystems.aurora.database.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 
 public class RoleDto {
@@ -17,7 +17,7 @@ public class RoleDto {
     private final boolean managed;
     private final boolean mentionable;
 
-    public RoleDto(RoleDocument role) {
+    public RoleDto(GuildRoleDocument role) {
         this.id = role.getId();
         this.name = role.getName();
         this.permissions = role.getPermissions();

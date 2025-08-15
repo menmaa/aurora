@@ -5,7 +5,7 @@ package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.database.model.GuildDocument;
 import com.menmasystems.aurora.database.model.GuildMemberDocument;
-import com.menmasystems.aurora.database.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.util.Permission;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
@@ -50,13 +50,13 @@ public class PermissionService {
             return Flux.just(Permission.ADMINISTRATOR);
         }
 
-        Map<SnowflakeId, RoleDocument> roleMap = getRoleMap(guild);
+        Map<SnowflakeId, GuildRoleDocument> roleMap = getRoleMap(guild);
         long everyonePerms = roleMap.get(guild.getId()).getPermissions();
 
         return guildMemberService.getRoles(guild.getId(), member.getUserId())
                 .map(roleMap::get)
                 .filter(Objects::nonNull)
-                .map(RoleDocument::getPermissions)
+                .map(GuildRoleDocument::getPermissions)
                 .reduce(everyonePerms, (a, b) -> a | b)
                 .flatMapMany(this::permissionsToFlux);
     }
@@ -68,22 +68,22 @@ public class PermissionService {
                         return Flux.just(Permission.ADMINISTRATOR);
                     }
 
-                    Map<SnowflakeId, RoleDocument> roleMap = getRoleMap(guild);
+                    Map<SnowflakeId, GuildRoleDocument> roleMap = getRoleMap(guild);
                     long everyonePerms = roleMap.get(guildId).getPermissions();
 
                     return guildMemberService.getRoles(guildId, userId)
                             .map(roleMap::get)
                             .filter(Objects::nonNull)
-                            .map(RoleDocument::getPermissions)
+                            .map(GuildRoleDocument::getPermissions)
                             .reduce(everyonePerms, (a, b) -> a | b)
                             .flatMapMany(this::permissionsToFlux);
                 });
     }
 
-    private Map<SnowflakeId, RoleDocument> getRoleMap(GuildDocument guild) {
+    private Map<SnowflakeId, GuildRoleDocument> getRoleMap(GuildDocument guild) {
         return guild.getRoles()
                 .stream()
-                .collect(Collectors.toMap(RoleDocument::getId, r -> r));
+                .collect(Collectors.toMap(GuildRoleDocument::getId, r -> r));
     }
 
     private Flux<Permission> permissionsToFlux(long permissions) {

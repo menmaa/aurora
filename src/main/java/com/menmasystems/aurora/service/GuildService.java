@@ -7,7 +7,7 @@ import com.menmasystems.aurora.component.SnowflakeGenerator;
 import com.menmasystems.aurora.dto.guild.CreateGuildRequest;
 import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
 import com.menmasystems.aurora.database.model.GuildDocument;
-import com.menmasystems.aurora.database.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.database.repository.GuildRepository;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
@@ -72,7 +72,7 @@ public class GuildService {
         return guildRepository.updateDateDeletedById(guildId.id(), date).then();
     }
 
-    private RoleDocument createDefaultRole(SnowflakeId guildId) {
-        return new RoleDocument(guildId, "@everyone");
+    private GuildRoleDocument createDefaultRole(SnowflakeId guildId) {
+        return new GuildRoleDocument(guildId, "@everyone");
     }
 }

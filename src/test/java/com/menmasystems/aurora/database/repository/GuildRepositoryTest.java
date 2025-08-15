@@ -5,7 +5,7 @@ package com.menmasystems.aurora.database.repository;
 
 import com.menmasystems.aurora.config.ReactiveMongoConfig;
 import com.menmasystems.aurora.database.model.GuildDocument;
-import com.menmasystems.aurora.database.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +42,7 @@ public class GuildRepositoryTest {
         testingGuild.setId(SnowflakeId.of(212714770883747840L));
         testingGuild.setName("Test Guild");
         testingGuild.setOwnerId(SnowflakeId.of(123456789012345678L));
-        testingGuild.setRoles(List.of(new RoleDocument(SnowflakeId.of(212714770883747840L), "@everyone")));
+        testingGuild.setRoles(List.of(new GuildRoleDocument(SnowflakeId.of(212714770883747840L), "@everyone")));
 
         guildRepository.save(testingGuild).block();
     }
@@ -71,7 +71,7 @@ public class GuildRepositoryTest {
 
     @Test
     void addRoleById_shouldAddRoleToGuildRolesArray() {
-        RoleDocument role = new RoleDocument(SnowflakeId.of(212714770883747841L), "Test Role");
+        GuildRoleDocument role = new GuildRoleDocument(SnowflakeId.of(212714770883747841L), "Test Role");
         role.setHoist(true);
         role.setColor(0xAFAFAF);
 
@@ -86,22 +86,22 @@ public class GuildRepositoryTest {
 
     @Test
     void findRolesByGuildId_shouldReturnGuild() {
-        Flux<RoleDocument> roles = guildRepository.findRoleByGuildIdAndRoleId(212714770883747840L, SnowflakeId.of(212714770883747840L))
+        Flux<GuildRoleDocument> roles = guildRepository.findRoleByGuildIdAndRoleId(212714770883747840L, SnowflakeId.of(212714770883747840L))
                 .map(GuildDocument::getRoles)
                 .flatMapMany(Flux::fromIterable);
 
         StepVerifier.create(roles)
-                .expectNext(testingGuild.getRoles().toArray(new RoleDocument[0]))
+                .expectNext(testingGuild.getRoles().toArray(new GuildRoleDocument[0]))
                 .verifyComplete();
     }
 
     @Test
     void findRoleByGuildIdAndRoleId_shouldReturnOneGuildRole() {
         SnowflakeId roleId = SnowflakeId.of(212714770883747840L);
-        Mono<RoleDocument> role = guildRepository.findRoleByGuildIdAndRoleId(testingGuild.getId().id(), roleId)
+        Mono<GuildRoleDocument> role = guildRepository.findRoleByGuildIdAndRoleId(testingGuild.getId().id(), roleId)
                 .map(guild -> guild.getRoles().getFirst());
 
-        RoleDocument expectedRole = testingGuild.getRoles()
+        GuildRoleDocument expectedRole = testingGuild.getRoles()
                 .stream()
                 .filter(r -> r.getId().equals(roleId))
                 .findFirst()

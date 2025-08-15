@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @EqualsAndHashCode
 @Document
-public class RoleDocument {
+public class GuildRoleDocument {
 
     private SnowflakeId id;
     private String name;
@@ -21,14 +21,14 @@ public class RoleDocument {
     private boolean managed;
     private boolean mentionable;
 
-    public RoleDocument() {}
+    public GuildRoleDocument() {}
 
-    public RoleDocument(SnowflakeId id, String name) {
+    public GuildRoleDocument(SnowflakeId id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public RoleDocument(SnowflakeId id, CreateGuildRoleRequest request) {
+    public GuildRoleDocument(SnowflakeId id, CreateGuildRoleRequest request) {
         this.id = id;
         this.name = request.getName();
         this.permissions = request.getPermissions();

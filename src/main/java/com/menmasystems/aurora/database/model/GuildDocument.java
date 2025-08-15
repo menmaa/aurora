@@ -20,7 +20,7 @@ public class GuildDocument {
     private String name;
     private String icon;
     private SnowflakeId ownerId;
-    private List<RoleDocument> roles;
+    private List<GuildRoleDocument> roles;
     private Long dateDeleted = null;
 
     public SnowflakeId getId() {
@@ -55,11 +55,11 @@ public class GuildDocument {
         this.ownerId = ownerId;
     }
 
-    public List<RoleDocument> getRoles() {
+    public List<GuildRoleDocument> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<RoleDocument> roles) {
+    public void setRoles(List<GuildRoleDocument> roles) {
         this.roles = roles;
     }
 

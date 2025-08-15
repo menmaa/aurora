@@ -6,7 +6,7 @@ package com.menmasystems.aurora.service;
 import com.menmasystems.aurora.component.SnowflakeGenerator;
 import com.menmasystems.aurora.dto.guild.role.CreateGuildRoleRequest;
 import com.menmasystems.aurora.database.model.GuildDocument;
-import com.menmasystems.aurora.database.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.database.repository.GuildRepository;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
@@ -24,20 +24,20 @@ public class GuildRoleService {
         this.snowflakeGenerator = snowflakeGenerator;
     }
 
-    public Mono<RoleDocument> addRole(SnowflakeId guildId, CreateGuildRoleRequest request) {
+    public Mono<GuildRoleDocument> addRole(SnowflakeId guildId, CreateGuildRoleRequest request) {
         SnowflakeId roleId = snowflakeGenerator.generate();
-        RoleDocument role = new RoleDocument(roleId, request);
+        GuildRoleDocument role = new GuildRoleDocument(roleId, request);
 
         return guildRepository.addRoleById(guildId.id(), role).thenReturn(role);
     }
 
-    public Flux<RoleDocument> getRoles(SnowflakeId guildId) {
+    public Flux<GuildRoleDocument> getRoles(SnowflakeId guildId) {
         return guildRepository.findRolesByGuildId(guildId.id())
                 .map(GuildDocument::getRoles)
                 .flatMapMany(Flux::fromIterable);
     }
 
-    public Mono<RoleDocument> getRole(SnowflakeId guildId, SnowflakeId roleId) {
+    public Mono<GuildRoleDocument> getRole(SnowflakeId guildId, SnowflakeId roleId) {
         return guildRepository.findRoleByGuildIdAndRoleId(guildId.id(), roleId)
                 .map(guild -> guild.getRoles().getFirst());
     }
