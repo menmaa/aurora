@@ -61,10 +61,8 @@ public class GuildRepositoryTest {
         long date = Instant.now().toEpochMilli();
         guildRepository.updateDateDeletedById(testingGuild.getId().id(), date).block();
 
-        GuildDocument guild = guildRepository.findById(testingGuild.getId().id()).block();
-        GuildDocument deletedGuild = guildRepository.findDeletedGuildById(testingGuild.getId().id()).block();
+        GuildDocument deletedGuild = guildRepository.findById(testingGuild.getId().id()).block();
 
-        Assertions.assertNull(guild);
         Assertions.assertNotNull(deletedGuild);
         Assertions.assertEquals(date, deletedGuild.getDateDeleted());
     }

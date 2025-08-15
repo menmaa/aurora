@@ -58,7 +58,8 @@ public class GuildService {
     }
 
     public Mono<GuildDocument> getGuildById(SnowflakeId id) {
-        return guildRepository.findById(id.id());
+        return guildRepository.findById(id.id())
+                .filter(doc -> doc.getDateDeleted() == null);
     }
 
     public Mono<GuildDocument> updateGuild(GuildDocument guild, UpdateGuildRequest request) {

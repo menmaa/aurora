@@ -13,23 +13,17 @@ import reactor.core.publisher.Mono;
 
 public interface GuildRepository extends ReactiveMongoRepository<GuildDocument, Long> {
 
-    @Query("{ '_id' : ?0, 'dateDeleted' : null }")
-    Mono<GuildDocument> findById(long guildId);
-
-    @Query("{  '_id' : ?0, 'dateDeleted' : { '$ne': null } }")
-    Mono<GuildDocument> findDeletedGuildById(long guildId);
-
     @Query("{ '_id' : ?0 }")
     @Update("{ '$set' : { 'dateDeleted' : ?1 } }")
     Mono<Void> updateDateDeletedById(long guildId, long dateDeleted);
 
-    @Query("{ '_id' : ?0, 'dateDeleted' : null }")
+    @Query("{ '_id' : ?0 }")
     @Update("{ '$push': { 'roles': ?1 } }")
     Mono<Void> addRoleById(long guildId, GuildRoleDocument roleDocument);
 
-    @Query(value = "{ '_id' : ?0, 'dateDeleted' : null }", fields = "{ '_id' : 0, 'roles': 1 }")
+    @Query(value = "{ '_id' : ?0 }", fields = "{ '_id' : 0, 'roles': 1 }")
     Mono<GuildDocument> findRolesByGuildId(long guildId);
 
-    @Query(value = "{ '_id' : ?0, 'roles.id' : ?1, 'dateDeleted' : null }", fields = "{ '_id' : 0, 'roles.$': 1 }")
+    @Query(value = "{ '_id' : ?0, 'roles.id' : ?1 }", fields = "{ '_id' : 0, 'roles.$': 1 }")
     Mono<GuildDocument> findRoleByGuildIdAndRoleId(long guildId, SnowflakeId roleId);
 }
