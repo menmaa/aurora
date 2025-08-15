@@ -5,7 +5,7 @@ package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.component.RedisCuckooFilter;
 import com.menmasystems.aurora.dto.RegisterUserRequest;
-import com.menmasystems.aurora.repository.UserRepository;
+import com.menmasystems.aurora.database.repository.UserRepository;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;

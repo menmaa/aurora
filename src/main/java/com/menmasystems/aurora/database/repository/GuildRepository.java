@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.repository;
+package com.menmasystems.aurora.database.repository;
 
-import com.menmasystems.aurora.model.GuildDocument;
-import com.menmasystems.aurora.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildDocument;
+import com.menmasystems.aurora.database.model.RoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
@@ -31,5 +31,5 @@ public interface GuildRepository extends ReactiveMongoRepository<GuildDocument, 
     Mono<GuildDocument> findRolesByGuildId(long guildId);
 
     @Query(value = "{ '_id' : ?0, 'roles.id' : ?1, 'dateDeleted' : null }", fields = "{ '_id' : 0, 'roles.$': 1 }")
-    Mono<GuildDocument> findRoleByIdAndRolesId(long guildId, SnowflakeId roleId);
+    Mono<GuildDocument> findRoleByGuildIdAndRoleId(long guildId, SnowflakeId roleId);
 }

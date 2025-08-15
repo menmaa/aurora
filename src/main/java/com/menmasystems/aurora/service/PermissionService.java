@@ -3,9 +3,9 @@
  */
 package com.menmasystems.aurora.service;
 
-import com.menmasystems.aurora.model.GuildDocument;
-import com.menmasystems.aurora.model.GuildMemberDocument;
-import com.menmasystems.aurora.model.RoleDocument;
+import com.menmasystems.aurora.database.model.GuildDocument;
+import com.menmasystems.aurora.database.model.GuildMemberDocument;
+import com.menmasystems.aurora.database.model.RoleDocument;
 import com.menmasystems.aurora.util.Permission;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;

@@ -3,7 +3,7 @@
  */
 package com.menmasystems.aurora.dto.guild.role;
 
-import com.menmasystems.aurora.model.RoleDocument;
+import com.menmasystems.aurora.database.model.RoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 
 public class RoleDto {

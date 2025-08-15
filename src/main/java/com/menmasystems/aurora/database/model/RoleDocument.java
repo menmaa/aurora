@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.model;
+package com.menmasystems.aurora.database.model;
 
 import com.menmasystems.aurora.dto.guild.role.CreateGuildRoleRequest;
 import com.menmasystems.aurora.util.SnowflakeId;

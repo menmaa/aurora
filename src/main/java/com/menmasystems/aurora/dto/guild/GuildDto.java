@@ -4,7 +4,7 @@
 package com.menmasystems.aurora.dto.guild;
 
 import com.menmasystems.aurora.dto.guild.role.RoleDto;
-import com.menmasystems.aurora.model.GuildDocument;
+import com.menmasystems.aurora.database.model.GuildDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 
 import java.util.List;

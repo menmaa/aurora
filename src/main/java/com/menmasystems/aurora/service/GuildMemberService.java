@@ -3,8 +3,8 @@
  */
 package com.menmasystems.aurora.service;
 
-import com.menmasystems.aurora.model.GuildMemberDocument;
-import com.menmasystems.aurora.repository.GuildMemberRepository;
+import com.menmasystems.aurora.database.model.GuildMemberDocument;
+import com.menmasystems.aurora.database.repository.GuildMemberRepository;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
