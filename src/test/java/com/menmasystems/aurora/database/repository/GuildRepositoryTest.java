@@ -4,9 +4,8 @@
 package com.menmasystems.aurora.database.repository;
 
 import com.menmasystems.aurora.config.ReactiveMongoConfig;
-import com.menmasystems.aurora.model.GuildDocument;
-import com.menmasystems.aurora.model.RoleDocument;
-import com.menmasystems.aurora.repository.GuildRepository;
+import com.menmasystems.aurora.database.model.GuildDocument;
+import com.menmasystems.aurora.database.model.RoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,13 +70,45 @@ public class GuildRepositoryTest {
     }
 
     @Test
+    void addRoleById_shouldAddRoleToGuildRolesArray() {
+        RoleDocument role = new RoleDocument(SnowflakeId.of(212714770883747841L), "Test Role");
+        role.setHoist(true);
+        role.setColor(0xAFAFAF);
+
+        guildRepository.addRoleById(testingGuild.getId().id(), role).block();
+
+        Mono<GuildDocument> guild = guildRepository.findById(testingGuild.getId().id());
+
+        StepVerifier.create(guild)
+                .expectNextMatches(g -> g.getRoles().stream().anyMatch(r -> r.equals(role)))
+                .verifyComplete();
+    }
+
+    @Test
     void findRolesByGuildId_shouldReturnGuild() {
-        Flux<RoleDocument> roles = guildRepository.findRoleByIdAndRolesId(212714770883747840L, SnowflakeId.of(212714770883747840L))
+        Flux<RoleDocument> roles = guildRepository.findRoleByGuildIdAndRoleId(212714770883747840L, SnowflakeId.of(212714770883747840L))
                 .map(GuildDocument::getRoles)
                 .flatMapMany(Flux::fromIterable);
 
         StepVerifier.create(roles)
                 .expectNext(testingGuild.getRoles().toArray(new RoleDocument[0]))
+                .verifyComplete();
+    }
+
+    @Test
+    void findRoleByGuildIdAndRoleId_shouldReturnOneGuildRole() {
+        SnowflakeId roleId = SnowflakeId.of(212714770883747840L);
+        Mono<RoleDocument> role = guildRepository.findRoleByGuildIdAndRoleId(testingGuild.getId().id(), roleId)
+                .map(guild -> guild.getRoles().getFirst());
+
+        RoleDocument expectedRole = testingGuild.getRoles()
+                .stream()
+                .filter(r -> r.getId().equals(roleId))
+                .findFirst()
+                .orElseThrow();
+
+        StepVerifier.create(role)
+                .expectNext(expectedRole)
                 .verifyComplete();
     }
 }
