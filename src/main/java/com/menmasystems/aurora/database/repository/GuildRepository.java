@@ -4,22 +4,19 @@
 package com.menmasystems.aurora.database.repository;
 
 import com.menmasystems.aurora.database.model.GuildDocument;
-import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.data.mongodb.repository.Update;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
-public interface GuildRepository extends ReactiveMongoRepository<GuildDocument, Long> {
+@Repository
+public interface GuildRepository extends ReactiveMongoRepository<GuildDocument, Long>, GuildRepositoryEx {
 
     @Query("{ '_id' : ?0 }")
     @Update("{ '$set' : { 'dateDeleted' : ?1 } }")
-    Mono<Void> updateDateDeletedById(long guildId, long dateDeleted);
-
-    @Query("{ '_id' : ?0 }")
-    @Update("{ '$push': { 'roles': ?1 } }")
-    Mono<Void> addRoleById(long guildId, GuildRoleDocument roleDocument);
+    Mono<Void> updateDateDeletedById(long id, long dateDeleted);
 
     @Query(value = "{ '_id' : ?0 }", fields = "{ '_id' : 0, 'roles': 1 }")
     Mono<GuildDocument> findRolesByGuildId(long guildId);

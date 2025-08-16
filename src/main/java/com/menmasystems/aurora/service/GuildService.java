@@ -4,14 +4,17 @@
 package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.component.SnowflakeGenerator;
-import com.menmasystems.aurora.dto.guild.CreateGuildRequest;
-import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
+import com.menmasystems.aurora.dto.guild.GuildDto;
 import com.menmasystems.aurora.database.model.GuildDocument;
 import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.database.repository.GuildRepository;
+import com.menmasystems.aurora.dto.guild.role.RoleDto;
+import com.menmasystems.aurora.exception.GuildNotFoundException;
+import com.menmasystems.aurora.exception.RoleNotFoundException;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -49,11 +52,11 @@ public class GuildService {
      * @see GuildMemberService#addMember(SnowflakeId, SnowflakeId)
      */
     @Transactional
-    public Mono<GuildDocument> createGuild(SnowflakeId userId, CreateGuildRequest request) {
+    public Mono<GuildDocument> createGuild(SnowflakeId userId, GuildDto request) {
         GuildDocument guild = new GuildDocument();
         guild.setId(snowflakeGenerator.generate());
-        guild.setName(request.getName());
-        guild.setIcon(request.getIcon());
+        guild.setName(request.getName().get());
+        guild.setIcon(request.getIcon().orElse(null));
         guild.setOwnerId(userId);
         guild.setRoles(List.of(createDefaultRole(guild.getId())));
 
@@ -67,15 +70,49 @@ public class GuildService {
                 .filter(doc -> doc.getDateDeleted() == null);
     }
 
-    public Mono<GuildDocument> updateGuild(GuildDocument guild, UpdateGuildRequest request) {
-        if(request.getName().isPresent()) guild.setName(request.getName().get());
-        if(request.getIcon().isPresent()) guild.setIcon(request.getIcon().get());
-        return guildRepository.save(guild);
+    public Mono<GuildDocument> updateGuild(SnowflakeId guildId, GuildDto request) {
+        return guildRepository.updateGuildById(guildId, request)
+                .switchIfEmpty(Mono.error(new GuildNotFoundException(guildId.id())));
     }
 
     public Mono<Void> deleteGuild(SnowflakeId guildId) {
         var date = Instant.now().toEpochMilli();
         return guildRepository.updateDateDeletedById(guildId.id(), date).then();
+    }
+
+    @Transactional
+    public Mono<GuildRoleDocument> addRole(SnowflakeId guildId, RoleDto request) {
+        SnowflakeId roleId = snowflakeGenerator.generate();
+        GuildRoleDocument role = new GuildRoleDocument(roleId, request.getName().get());
+
+        return guildRepository.addRoleByGuildId(guildId, role)
+                .flatMap(roleDoc -> guildRepository.incrGuildRolePositions(guildId, roleDoc.getPosition()))
+                .thenReturn(role);
+    }
+
+    public Flux<GuildRoleDocument> getRoles(SnowflakeId guildId) {
+        return guildRepository.findRolesByGuildId(guildId.id())
+                .map(GuildDocument::getRoles)
+                .flatMapMany(Flux::fromIterable);
+    }
+
+    public Mono<GuildRoleDocument> getRole(SnowflakeId guildId, SnowflakeId roleId) {
+        return guildRepository.findRoleByGuildIdAndRoleId(guildId.id(), roleId)
+                .map(guild -> guild.getRoles().getFirst());
+    }
+
+    public Mono<GuildRoleDocument> updateRole(GuildDocument guildDoc, SnowflakeId roleId, RoleDto request) {
+        return guildRepository.updateRoleById(guildDoc.getId(), roleId, request)
+                .switchIfEmpty(Mono.error(new RoleNotFoundException(roleId.id())));
+    }
+
+    @Transactional
+    public Mono<Void> deleteRole(SnowflakeId guildId, SnowflakeId roleId) {
+        if(guildId.equals(roleId))
+            return Mono.error(new IllegalArgumentException("Cannot delete the @everyone role."));
+
+        return guildRepository.deleteRoleByGuildIdAndRoleId(guildId, roleId)
+                .flatMap(role -> guildRepository.decrGuildRolePositions(guildId, role.getPosition()));
     }
 
     private GuildRoleDocument createDefaultRole(SnowflakeId guildId) {

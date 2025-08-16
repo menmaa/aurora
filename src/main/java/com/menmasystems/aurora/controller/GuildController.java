@@ -12,13 +12,12 @@ import com.menmasystems.aurora.dto.guild.GuildDto;
 import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
-import com.menmasystems.aurora.service.GuildMemberService;
 import com.menmasystems.aurora.service.GuildService;
 import com.menmasystems.aurora.util.Permission;
 import com.menmasystems.aurora.util.SnowflakeId;
 import com.menmasystems.aurora.web.context.GuildRelatedRequestContext;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -33,16 +32,17 @@ import reactor.core.publisher.Mono;
 class GuildController {
 
     private final GuildService guildService;
-    private final GuildMemberService guildMemberService;
 
-    GuildController(GuildService guildService, GuildMemberService guildMemberService) {
+    GuildController(GuildService guildService) {
         this.guildService = guildService;
-        this.guildMemberService = guildMemberService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<GuildDto> createGuild(@AuthContext AuroraAuthentication auth, @Valid @RequestBody CreateGuildRequest request) {
+    public Mono<GuildDto> createGuild(
+            @AuthContext AuroraAuthentication auth,
+            @Validated(CreateGuildRequest.class) @RequestBody GuildDto request
+    ) {
         return guildService.createGuild(auth.userId(), request).map(GuildDto::new);
     }
 
@@ -57,10 +57,9 @@ class GuildController {
     @GuildActionRequest(permission = Permission.MANAGE_GUILD)
     @ResponseStatus(HttpStatus.OK)
     public Mono<GuildDto> updateGuild(
-            GuildRelatedRequestContext ctx,
             @PathVariable SnowflakeId guildId,
-            @Valid @RequestBody UpdateGuildRequest request) {
-        return guildService.updateGuild(ctx.guild(), request).map(GuildDto::new);
+            @Validated(UpdateGuildRequest.class) @RequestBody GuildDto request) {
+        return guildService.updateGuild(guildId, request).map(GuildDto::new);
     }
 
     @DeleteMapping("/{guildId}")

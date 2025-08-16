@@ -68,6 +68,21 @@ public class GuildDocument {
         this.roles = roles;
     }
 
+    public GuildRoleDocument getRole(SnowflakeId roleId) {
+        return roles.stream()
+                .filter(role -> role.getId().equals(roleId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void addRole(GuildRoleDocument role) {
+        roles.add(role);
+    }
+
+    public void removeRole(SnowflakeId roleId) {
+        roles.removeIf(role -> role.getId().equals(roleId));
+    }
+
     @Nullable
     public Long getDateDeleted() {
         return dateDeleted;

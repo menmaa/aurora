@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.dto.guild;
+package com.menmasystems.aurora.dto.guild.role;
 
-public interface CreateGuildRequest {}
+public interface UpdateGuildRoleRequest {}

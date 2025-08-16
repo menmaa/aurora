@@ -15,7 +15,7 @@ public class RegisterUserRequest {
 
     @NotBlank(message = "Display name is required")
     @Size(max = 64, message = "Display name cannot be more than 64 characters long")
-    private String display_name;
+    private String displayName;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be a valid email address")
@@ -38,11 +38,11 @@ public class RegisterUserRequest {
     }
 
     public String getDisplayName() {
-        return display_name;
+        return displayName;
     }
 
     public void setDisplayName(String display_name) {
-        this.display_name = display_name;
+        this.displayName = display_name;
     }
 
     public String getEmail() {
