@@ -11,6 +11,11 @@ import org.springframework.lang.Nullable;
 
 import java.util.List;
 
+/**
+ * Database document model for storing guild information.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @EqualsAndHashCode
 @Document(collection = "guilds")
 public class GuildDocument {

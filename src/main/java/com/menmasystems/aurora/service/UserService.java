@@ -13,6 +13,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+/**
+ * Service for managing user accounts.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @Service
 public class UserService {
     private final SnowflakeGenerator snowflakeGenerator;

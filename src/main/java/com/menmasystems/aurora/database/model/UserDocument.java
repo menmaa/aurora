@@ -8,6 +8,11 @@ import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Database document model for storing user information.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @EqualsAndHashCode
 @Document(collection = "users")
 public class UserDocument {

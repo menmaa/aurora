@@ -22,6 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+/**
+ * REST Controller for managing guilds.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @RestController
 @RequestMapping("/guilds")
 @SecuredRequest

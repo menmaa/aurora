@@ -8,6 +8,11 @@ import com.menmasystems.aurora.util.SnowflakeId;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Database document model for storing guild role information.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @EqualsAndHashCode
 @Document
 public class GuildRoleDocument {

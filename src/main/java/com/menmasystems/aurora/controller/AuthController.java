@@ -23,6 +23,11 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 
+/**
+ * REST Controller for user authentication.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @RestController
 @RequestMapping("/auth")
 class AuthController {

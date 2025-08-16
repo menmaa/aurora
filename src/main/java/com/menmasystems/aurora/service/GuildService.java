@@ -17,6 +17,11 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Service for managing guilds.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @Service
 public class GuildService {
 

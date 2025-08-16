@@ -9,6 +9,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+/**
+ * Database document model for storing guild member information.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @EqualsAndHashCode
 @Document(collection = "guild_members")
 public class GuildMemberDocument {

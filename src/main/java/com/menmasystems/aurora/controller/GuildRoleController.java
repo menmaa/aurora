@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * REST Controller for managing guild roles.
+ *
+ * @author Fotis Makris (Menma)
+ */
 @RestController
 @RequestMapping("/guilds/{guildId}/roles")
 @GuildActionRequest
