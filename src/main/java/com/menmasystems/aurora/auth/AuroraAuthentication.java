@@ -3,7 +3,7 @@
  */
 package com.menmasystems.aurora.auth;
 
-import com.menmasystems.aurora.auth.exception.InvalidTokenSignatureException;
+import com.menmasystems.aurora.exception.InvalidTokenSignatureException;
 import com.menmasystems.aurora.util.SnowflakeId;
 import reactor.core.publisher.Mono;
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Fotios Makris, Menma Systems, Menma Software. All rights reserved.
  */
-package com.menmasystems.aurora.auth.session;
+package com.menmasystems.aurora.service;
 
 import com.menmasystems.aurora.auth.AuroraAuthentication;
 import com.menmasystems.aurora.util.SnowflakeId;

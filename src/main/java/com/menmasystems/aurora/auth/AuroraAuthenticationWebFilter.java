@@ -3,8 +3,8 @@
  */
 package com.menmasystems.aurora.auth;
 
-import com.menmasystems.aurora.auth.exception.UnauthenticatedUserException;
-import com.menmasystems.aurora.auth.session.SessionService;
+import com.menmasystems.aurora.exception.UnauthenticatedUserException;
+import com.menmasystems.aurora.service.SessionService;
 import com.menmasystems.aurora.web.filter.SecurityWebFiltersOrder;
 import org.springframework.boot.web.reactive.filter.OrderedWebFilter;
 import org.springframework.http.HttpHeaders;

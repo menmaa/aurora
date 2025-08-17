@@ -12,7 +12,7 @@ import com.menmasystems.aurora.dto.RegisterUserRequest;
 import com.menmasystems.aurora.dto.RegisterUserResponse;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
-import com.menmasystems.aurora.auth.session.SessionService;
+import com.menmasystems.aurora.service.SessionService;
 import com.menmasystems.aurora.service.UserService;
 import com.menmasystems.aurora.service.ValidationService;
 import jakarta.validation.Valid;

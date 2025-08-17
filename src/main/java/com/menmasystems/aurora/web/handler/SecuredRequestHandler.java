@@ -6,7 +6,7 @@ package com.menmasystems.aurora.web.handler;
 import com.menmasystems.aurora.annotation.SecuredRequest;
 import com.menmasystems.aurora.auth.AuroraSecurityContext;
 import com.menmasystems.aurora.auth.AuroraSecurityContextHolder;
-import com.menmasystems.aurora.auth.exception.UnauthenticatedUserException;
+import com.menmasystems.aurora.exception.UnauthenticatedUserException;
 import com.menmasystems.aurora.web.adapter.AbstractAnnotationHandler;
 import com.menmasystems.aurora.web.adapter.AnnotationHandlersOrder;
 import org.springframework.core.annotation.Order;
