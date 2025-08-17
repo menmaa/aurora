@@ -8,16 +8,19 @@ import com.menmasystems.aurora.database.model.GuildDocument;
 import com.menmasystems.aurora.util.SnowflakeId;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Null;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.openapitools.jackson.nullable.JsonNullable;
 
 import java.util.List;
 
+@Data
+@NoArgsConstructor
 public class GuildDto {
 
     @Null
     private SnowflakeId id;
 
-    @NotBlank(groups = CreateGuildRequest.class, message = "Guild name is required")
     private JsonNullable<String> name = JsonNullable.undefined();
     private JsonNullable<String> icon = JsonNullable.undefined();
 
@@ -33,45 +36,5 @@ public class GuildDto {
         this.setIcon(JsonNullable.of(guild.getIcon()));
         this.setOwnerId(guild.getOwnerId());
         this.setRoles(guild.getRoles().stream().map(RoleDto::new).toList());
-    }
-
-    public SnowflakeId getId() {
-        return id;
-    }
-
-    public void setId(SnowflakeId id) {
-        this.id = id;
-    }
-
-    public JsonNullable<String> getName() {
-        return name;
-    }
-
-    public void setName(JsonNullable<String> name) {
-        this.name = name;
-    }
-
-    public JsonNullable<String> getIcon() {
-        return icon;
-    }
-
-    public void setIcon(JsonNullable<String> icon) {
-        this.icon = icon;
-    }
-
-    public SnowflakeId getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(SnowflakeId ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public List<RoleDto> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<RoleDto> roles) {
-        this.roles = roles;
     }
 }

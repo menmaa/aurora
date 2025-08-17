@@ -7,6 +7,9 @@ import com.menmasystems.aurora.database.model.GuildDocument;
 import com.menmasystems.aurora.database.model.GuildRoleDocument;
 import com.menmasystems.aurora.dto.guild.GuildDto;
 import com.menmasystems.aurora.dto.guild.role.RoleDto;
+import com.menmasystems.aurora.exception.GuildNotFoundException;
+import com.menmasystems.aurora.exception.InvalidRequestException;
+import com.menmasystems.aurora.exception.RoleNotFoundException;
 import com.menmasystems.aurora.util.SnowflakeId;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
@@ -32,12 +35,14 @@ public class GuildRepositoryImpl implements GuildRepositoryEx {
         if(guild.getName().isPresent()) update.set("name", guild.getName().get());
         if(guild.getIcon().isPresent()) update.set("icon", guild.getIcon().get());
 
-        if(update.getUpdateObject().isEmpty()) return Mono.empty();
+        if(update.getUpdateObject().isEmpty())
+            return Mono.error(new InvalidRequestException());
 
         FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
 
         return mongoTemplate
-                .findAndModify(query, update, options, GuildDocument.class);
+                .findAndModify(query, update, options, GuildDocument.class)
+                .switchIfEmpty(Mono.error(new GuildNotFoundException(guildId.id())));
     }
 
     @Override
@@ -48,6 +53,7 @@ public class GuildRepositoryImpl implements GuildRepositoryEx {
 
         return mongoTemplate
                 .findAndModify(query, update, options, GuildDocument.class)
+                .switchIfEmpty(Mono.error(new GuildNotFoundException(guildId.id())))
                 .map(guildDocument -> guildDocument.getRole(roleDocument.getId()));
     }
 
@@ -63,12 +69,14 @@ public class GuildRepositoryImpl implements GuildRepositoryEx {
         if(role.getPosition().isPresent()) update.set("roles.$.position", role.getPosition().get());
         if(role.getMentionable().isPresent()) update.set("roles.$.mentionable", role.getMentionable().get());
 
-        if(update.getUpdateObject().isEmpty()) return Mono.empty();
+        if(update.getUpdateObject().isEmpty())
+            return Mono.error(new InvalidRequestException());
 
         FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
 
         return mongoTemplate
                 .findAndModify(query, update, options, GuildDocument.class)
+                .switchIfEmpty(Mono.error(new RoleNotFoundException(roleId.id())))
                 .map(guildDocument -> guildDocument.getRole(roleId));
     }
 
@@ -80,6 +88,7 @@ public class GuildRepositoryImpl implements GuildRepositoryEx {
 
         return mongoTemplate
                 .findAndModify(query, update, GuildDocument.class)
+                .switchIfEmpty(Mono.error(new RoleNotFoundException(roleId.id())))
                 .map(guildDocument -> guildDocument.getRole(roleId));
     }
 

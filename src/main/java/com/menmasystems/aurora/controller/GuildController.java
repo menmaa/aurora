@@ -7,17 +7,16 @@ import com.menmasystems.aurora.annotation.AuthContext;
 import com.menmasystems.aurora.annotation.GuildActionRequest;
 import com.menmasystems.aurora.annotation.SecuredRequest;
 import com.menmasystems.aurora.auth.AuroraAuthentication;
-import com.menmasystems.aurora.dto.guild.CreateGuildRequest;
+import com.menmasystems.aurora.dto.guild.CreateGuildDto;
 import com.menmasystems.aurora.dto.guild.GuildDto;
-import com.menmasystems.aurora.dto.guild.UpdateGuildRequest;
 import com.menmasystems.aurora.exception.ApiException;
 import com.menmasystems.aurora.exception.ErrorCode;
 import com.menmasystems.aurora.service.GuildService;
 import com.menmasystems.aurora.util.Permission;
 import com.menmasystems.aurora.util.SnowflakeId;
 import com.menmasystems.aurora.web.context.GuildRelatedRequestContext;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -41,7 +40,7 @@ class GuildController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<GuildDto> createGuild(
             @AuthContext AuroraAuthentication auth,
-            @Validated(CreateGuildRequest.class) @RequestBody GuildDto request
+            @Valid @RequestBody CreateGuildDto request
     ) {
         return guildService.createGuild(auth.userId(), request).map(GuildDto::new);
     }
@@ -58,7 +57,7 @@ class GuildController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<GuildDto> updateGuild(
             @PathVariable SnowflakeId guildId,
-            @Validated(UpdateGuildRequest.class) @RequestBody GuildDto request) {
+            @Valid @RequestBody GuildDto request) {
         return guildService.updateGuild(guildId, request).map(GuildDto::new);
     }
 
